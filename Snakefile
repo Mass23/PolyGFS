@@ -40,7 +40,7 @@ rule all:
         expand(os.path.join(RESULTS_DIR, "mapped_reads/{mag}_{sample}.bam"), mag=MAG, sample=SAMPLES),
         expand(os.path.join(RESULTS_DIR, "merged_bam/{mag}_merged.bam"), mag=MAG),
         expand(os.path.join(RESULTS_DIR, "vcf/{mag}_filtered.bcf.gz"), mag=MAG),
-        expand(os.path.join(RESULTS_DIR, "coverage/{mag}_coverage.txt"), mag=MAG)
+        expand(os.path.join(RESULTS_DIR, "coverage/{mag}_depth.cov"), mag=MAG)
 
 
 ###########
@@ -117,22 +117,25 @@ rule bam2vcf:
     shell:
         "(date && bcftools mpileup --max-depth 10000 -f {input.ref} {input.bam} | bcftools call -mv -Ob -o {output.calls} && "
         "bcftools view -i '%QUAL>=20' {output.calls} > {output.filtered} && "
-        "bgzip {output.filtered} > {output.gz} date) &> {log}"
+        "bgzip {output.filtered} > {output.gz} && date) &> {log}"
 
 ###########
 # Depth 
 rule depth:
     input:
-        rules.merge_bam.output
+        ref=os.path.join(BIN_DIR, "{mag}.fa"),
+        bam=expand(os.path.join(RESULTS_DIR, "mapped_reads/{{mag}}_{sample}.bam"), sample=SAMPLES)
     output:
-        os.path.join(RESULTS_DIR, "coverage/{mag}_coverage.txt")
+        wind=temp(os.path.join(RESULTS_DIR, "coverage/{mag}_SlidingWindows1kb.bed")),
+        depth=os.path.join(RESULTS_DIR, "coverage/{mag}_depth.cov")
     log:
         os.path.join(RESULTS_DIR, "logs/{mag}_coverage.log")
     threads:
         config["bwa"]["threads"]
     conda:
-        os.path.join(ENV_DIR, "bwa.yaml")
+        os.path.join(ENV_DIR, "bedtools.yaml")
     message:
         "Estimating the coverage for all samples on {wildcards.mag}"
     shell:
-        "(date && samtools depth {input} > {output} && date) &> {log}"
+        "(date && bedtools makewindows -g {input.ref} -w 1000 > {output.wind} && "
+        "bedtools multicov --bams {input.bam} -bed {output.wind} > {output.depth} && date) &> {log}"
