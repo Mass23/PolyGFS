@@ -84,7 +84,7 @@ rule bwa_map:
     message:
         "Mapping {wildcards.sample} onto {wildcards.mag}"
     shell:
-        """(date && bwa mem -t {threads} -R @RG\\tID:{wildcards.sample}\\SM:{wildcards.sample} {input.ref_genome} {input.r1} {input.r2} | samtools view -Sb - > {output} && date) &> {log}"""
+        """(date && bwa mem -t {threads} -R '@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}' $(echo {input.ref_genome} | sed 's/.fa//g') {input.r1} {input.r2} | samtools view -Sb - > {output} && date) &> {log}"""
 
 rule merge_bam:
     input:
