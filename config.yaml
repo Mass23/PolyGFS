@@ -2,7 +2,7 @@
 work_dir: "/mnt/md1200/epfl_sber/NOMIS_COASSEMBLY"
 
 # Directory where the results are to be stored
-results_dir: "/mnt/md1200/epfl_sber/NOMIS_COASSEMBLY/results"
+results_dir: "/mnt/esb-storage-01/NOMIS/coassembly/results"
 
 # Directory where conda environments are located
 env_dir: "/mnt/md1200/epfl_sber/NOMIS_COASSEMBLY/envs"
@@ -19,4 +19,4 @@ fastq_dir: "/mnt/esb-storage-01/NOMIS/coassembly/preproc"
 ##########
 # Params #
 bwa:
-  threads: 24
+  threads: 12
