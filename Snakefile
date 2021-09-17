@@ -28,6 +28,7 @@ FASTQ_DIR = config["fastq_dir"]
 # Input
 MAG = [line.strip() for line in open("polaromonas_mag_list").readlines()]
 SAMPLES = [line.strip() for line in open("sample_list").readlines()]
+SED_GI = [line.strip() for line in open("sed_gi_list").readlines()]
 
 ##############################
 # Params
@@ -37,10 +38,11 @@ BWA_IDX_EXT = ["amb", "ann", "bwt", "pac", "sa"]
 ##############################
 rule all:
     input:
-        expand(os.path.join(RESULTS_DIR, "mapped_reads/{mag}_{sample}.bam"), mag=MAG, sample=SAMPLES),
-        expand(os.path.join(RESULTS_DIR, "merged_bam/{mag}_merged.bam"), mag=MAG),
-        expand(os.path.join(RESULTS_DIR, "vcf/{mag}_filtered.bcf.gz"), mag=MAG),
-        expand(os.path.join(RESULTS_DIR, "coverage/{mag}_depth.cov"), mag=MAG)
+#        expand(os.path.join(RESULTS_DIR, "mapped_reads/{mag}_{sample}.bam"), mag=MAG, sample=SAMPLES),
+#        expand(os.path.join(RESULTS_DIR, "merged_bam/{mag}_merged.bam"), mag=MAG),
+#        expand(os.path.join(RESULTS_DIR, "vcf/{mag}_filtered.bcf.gz"), mag=MAG),
+#        expand(os.path.join(RESULTS_DIR, "coverage/{mag}_depth.cov"), mag=MAG),
+        expand(os.path.join(RESULTS_DIR, "sed_gi_vcf/{sed_gi}_{sample}_filtered.bcf.gz"), sed_gi=SED_GI, sample=SAMPLES)
 
 
 ###########
@@ -118,6 +120,26 @@ rule bam2vcf:
         "(date && bcftools mpileup --max-depth 10000 -f {input.ref} {input.bam} | bcftools call -mv -Ob -o {output.calls} && "
         "bcftools view -i '%QUAL>=20' {output.calls} > {output.filtered} && "
         "bgzip {output.filtered} > {output.gz} && date) &> {log}"
+
+rule sed_GI_bam2vcf:
+    input:
+        ref=os.path.join(BIN_DIR, "{sed_gi}.fa"),
+        bam=os.path.join(RESULTS_DIR, "mapped_reads/{sed_gi}_{sample}.bam")
+    output:
+        calls=temp(os.path.join(RESULTS_DIR, "sed_gi_vcf/{sed_gi}_{sample}_calls.bcf")),
+        filtered=temp(os.path.join(RESULTS_DIR, "sed_gi_vcf/{sed_gi}_{sample}_filtered.bcf")),
+        gz=os.path.join(RESULTS_DIR, "sed_gi_vcf/{sed_gi}_{sample}_filtered.bcf.gz")
+    conda:
+        os.path.join(ENV_DIR, "bcftools.yaml")
+    wildcard_constraints:
+        sed_gi="|".join(SED_GI)
+    message:
+        "Calling SNPs on {wildcards.sed_gi} and {wildcards.sample}"
+    shell:
+        "(date && bcftools mpileup --max-depth 10000 -f {input.ref} {input.bam} | bcftools call -mv -Ob -o {output.calls} && "
+        "bcftools view -i '%QUAL>=20' {output.calls} > {output.filtered} && "
+        "bgzip {output.filtered} > {output.gz} && date) &> {log}"
+
 
 ###########
 # Depth 
