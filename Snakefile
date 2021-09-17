@@ -112,6 +112,8 @@ rule bam2vcf:
         calls=temp(os.path.join(RESULTS_DIR, "vcf/{mag}_calls.bcf")),
         filtered=temp(os.path.join(RESULTS_DIR, "vcf/{mag}_filtered.bcf")),
         gz=os.path.join(RESULTS_DIR, "vcf/{mag}_filtered.bcf.gz")
+    log:
+        os.path.join(RESULTS_DIR, "logs/{mag}_bam2vcf.log")
     conda:
         os.path.join(ENV_DIR, "bcftools.yaml")
     message:
@@ -129,6 +131,8 @@ rule sed_GI_bam2vcf:
         calls=temp(os.path.join(RESULTS_DIR, "sed_gi_vcf/{sed_gi}_{sample}_calls.bcf")),
         filtered=temp(os.path.join(RESULTS_DIR, "sed_gi_vcf/{sed_gi}_{sample}_filtered.bcf")),
         gz=os.path.join(RESULTS_DIR, "sed_gi_vcf/{sed_gi}_{sample}_filtered.bcf.gz")
+    log:
+        os.path.join(RESULTS_DIR, "logs/{sed_gi}_{sample}_sed_GI_vcf.log")
     conda:
         os.path.join(ENV_DIR, "bcftools.yaml")
     wildcard_constraints:
