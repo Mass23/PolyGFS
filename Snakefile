@@ -135,14 +135,16 @@ rule sed_GI_bam2vcf:
         os.path.join(RESULTS_DIR, "logs/{sed_gi}_{sample}_sed_GI_vcf.log")
     conda:
         os.path.join(ENV_DIR, "bcftools.yaml")
+    threads:
+        config["bwa"]["threads"]
     wildcard_constraints:
         sed_gi="|".join(SED_GI)
     message:
         "Calling SNPs on {wildcards.sed_gi} and {wildcards.sample}"
     shell:
-        "(date && bcftools mpileup --max-depth 10000 -f {input.ref} {input.bam} | bcftools call -mv -Ob -o {output.calls} && "
+        "(date && bcftools mpileup --threads {threads} --max-depth 10000 -f {input.ref} {input.bam} | bcftools call -mv -Ob -o {output.calls} && "
         "bcftools view -i '%QUAL>=20' {output.calls} > {output.filtered} && "
-        "bgzip {output.filtered} > {output.gz} && date) &> {log}"
+        "bgzip -f {output.filtered} > {output.gz} && date) &> {log}"
 
 
 ###########
