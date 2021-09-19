@@ -38,11 +38,11 @@ BWA_IDX_EXT = ["amb", "ann", "bwt", "pac", "sa"]
 ##############################
 rule all:
     input:
-#        expand(os.path.join(RESULTS_DIR, "mapped_reads/{mag}_{sample}.bam"), mag=MAG, sample=SAMPLES),
+        expand(os.path.join(RESULTS_DIR, "mapped_reads/{mag}_{sample}.bam"), mag=SED_GI, sample=SAMPLES),
 #        expand(os.path.join(RESULTS_DIR, "merged_bam/{mag}_merged.bam"), mag=MAG),
 #        expand(os.path.join(RESULTS_DIR, "vcf/{mag}_filtered.bcf.gz"), mag=MAG),
 #        expand(os.path.join(RESULTS_DIR, "coverage/{mag}_depth.cov"), mag=MAG),
-        expand(os.path.join(RESULTS_DIR, "sed_gi_vcf/{sed_gi}_{sample}_filtered.bcf.gz"), sed_gi=SED_GI, sample=SAMPLES)
+#        expand(os.path.join(RESULTS_DIR, "sed_gi_vcf/{sed_gi}_{sample}_filtered.bcf.gz"), sed_gi=SED_GI, sample=SAMPLES)
 
 
 ###########
@@ -88,9 +88,30 @@ rule bwa_map:
     shell:
         """(date && bwa mem -t {threads} -R '@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}' $(echo {input.ref_genome} | sed 's/.fa//g') {input.r1} {input.r2} | samtools view -Sb -F 4 - > {output} && date) &> {log}"""
 
+
+rule sort_index_bam:
+    input:
+        os.path.join(RESULTS_DIR, "mapped_reads/{mag}_{sample}.bam")
+    output:
+        sorted=os.path.join(RESULTS_DIR, "mapped_reads/{mag}_{sample}.sorted.bam"),
+        index=os.path.join(RESULTS_DIR, "mapped_reads/{mag}_{sample}.sorted.bam.bai")
+    log:
+        os.path.join(RESULTS_DIR, "logs/{mag}_{sample}_bam_index.log")
+    threads:
+        config["bwa"]["sort"]["threads"]
+    conda:
+        os.path.join(ENV_DIR, "bwa.yaml")
+    params:
+        chunk_size=config["bwa"]["sort"]["chunk_size"]
+    message:
+        "Sorting and indexing bam files for {wildcards.mag} and {wildcards.sample}"
+    shell:
+        "(date && samtools sort --threads {threads} -m {params.chunk_size} {input} > {output.sorted} && "
+        "samtools index {output.sorted} && date) &> {log}"
+
 rule merge_bam:
     input:
-        expand(os.path.join(RESULTS_DIR, "mapped_reads/{{mag}}_{sample}.bam"), sample=SAMPLES)
+        expand(os.path.join(RESULTS_DIR, "mapped_reads/{{mag}}_{sample}.sorted.bam"), sample=SAMPLES)
     output:
         os.path.join(RESULTS_DIR, "merged_bam/{mag}_merged.bam")
     log:
@@ -126,7 +147,7 @@ rule bam2vcf:
 rule sed_GI_bam2vcf:
     input:
         ref=os.path.join(BIN_DIR, "{sed_gi}.fa"),
-        bam=os.path.join(RESULTS_DIR, "mapped_reads/{sed_gi}_{sample}.bam")
+        bam=os.path.join(RESULTS_DIR, "mapped_reads/{sed_gi}_{sample}.sorted.bam")
     output:
         calls=temp(os.path.join(RESULTS_DIR, "sed_gi_vcf/{sed_gi}_{sample}_calls.bcf")),
         filtered=temp(os.path.join(RESULTS_DIR, "sed_gi_vcf/{sed_gi}_{sample}_filtered.bcf")),
