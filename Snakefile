@@ -41,7 +41,9 @@ rule all:
         expand(os.path.join(RESULTS_DIR, "mapped_reads/{mag}_{sample}.bam"), mag=SED_GI, sample=SAMPLES),
 #        expand(os.path.join(RESULTS_DIR, "merged_bam/{mag}_merged.bam"), mag=MAG),
 #        expand(os.path.join(RESULTS_DIR, "vcf/{mag}_filtered.bcf.gz"), mag=MAG),
-#        expand(os.path.join(RESULTS_DIR, "coverage/{mag}_depth.cov"), mag=MAG),
+#        expand(os.path.join(RESULTS_DIR, "coverage/{mag}_depth.cov"), mag=SED_GI),
+        expand(os.path.join(RESULTS_DIR, "mapped_reads/{sed_gi}_{sample}.genome.txt"), sed_gi=SED_GI, sample=SAMPLES),
+        expand(os.path.join(RESULTS_DIR, "sed_gi_coverage/{sed_gi}_{sample}_depth.cov"), sed_gi=SED_GI, sample=SAMPLES),
         expand(os.path.join(RESULTS_DIR, "sed_gi_vcf/{sed_gi}_{sample}_filtered.bcf.gz"), sed_gi=SED_GI, sample=SAMPLES)
 
 
@@ -170,22 +172,46 @@ rule sed_GI_bam2vcf:
 
 
 ###########
-# Depth 
+# Depth
+rule genome_file:
+    input:
+        os.path.join(RESULTS_DIR, "mapped_reads/{sed_gi}_{sample}.sorted.bam")
+    output:
+        os.path.join(RESULTS_DIR, "mapped_reads/{sed_gi}_{sample}.genome.txt")
+    log:
+        os.path.join(RESULTS_DIR, "logs/{sed_gi}_{sample}_genome.log")
+    threads:
+        config["bwa"]["sort"]["threads"]
+    conda:
+        os.path.join(ENV_DIR, "bwa.yaml")
+    message:
+        "Creating GENOME file for bedtools for {wildcards.sed_gi} and {wildcards.sample}"
+    shell:
+        "(date && samtools view -H {input} | grep @SQ | sed 's/@SQ\\tSN:\\|LN://g' > {output} && date) &> {log}"
+
 rule depth:
     input:
-        ref=os.path.join(BIN_DIR, "{mag}.fa"),
-        bam=expand(os.path.join(RESULTS_DIR, "mapped_reads/{{mag}}_{sample}.bam"), sample=SAMPLES)
+#        ref=os.path.join(BIN_DIR, "{mag}.fa"),
+#        bam=expand(os.path.join(RESULTS_DIR, "mapped_reads/{{mag}}_{sample}.bam"), sample=SAMPLES)
+        gen_file=os.path.join(RESULTS_DIR, "mapped_reads/{sed_gi}_{sample}.genome.txt"),
+        bam=os.path.join(RESULTS_DIR, "mapped_reads/{sed_gi}_{sample}.sorted.bam")
     output:
-        wind=temp(os.path.join(RESULTS_DIR, "coverage/{mag}_SlidingWindows1kb.bed")),
-        depth=os.path.join(RESULTS_DIR, "coverage/{mag}_depth.cov")
+#        wind=temp(os.path.join(RESULTS_DIR, "coverage/{mag}_SlidingWindows1kb.bed")),
+#        depth=os.path.join(RESULTS_DIR, "coverage/{mag}_depth.cov")
+        wind=temp(os.path.join(RESULTS_DIR, "sed_gi_coverage/{sed_gi}_{sample}_SlidingWindows1kb.bed")),
+        depth=os.path.join(RESULTS_DIR, "sed_gi_coverage/{sed_gi}_{sample}_depth.cov")
     log:
-        os.path.join(RESULTS_DIR, "logs/{mag}_coverage.log")
+#        os.path.join(RESULTS_DIR, "logs/{mag}_coverage.log")
+        os.path.join(RESULTS_DIR, "logs/{sed_gi}_{sample}_coverage.log")
     threads:
-        config["bwa"]["threads"]
+        config["bwa"]["vcf"]["threads"]
     conda:
         os.path.join(ENV_DIR, "bedtools.yaml")
+    wildcard_constraints:
+        sed_gi="|".join(SED_GI)
     message:
-        "Estimating the coverage for all samples on {wildcards.mag}"
+#        "Estimating the coverage for all samples on {wildcards.mag}"
+        "Estimating the coverage for {wildcards.sed_gi} and {wildcards.sample}"
     shell:
-        "(date && bedtools makewindows -g {input.ref} -w 1000 > {output.wind} && "
-        "bedtools multicov --bams {input.bam} -bed {output.wind} > {output.depth} && date) &> {log}"
+        "(date && mkdir -p $(dirname {output.depth}) && bedtools makewindows -g {input.gen_file} -w 1000 > {output.wind} && "
+        "bedtools multicov -bams {input.bam} -bed {output.wind} > {output.depth} && date) &> {log}"
