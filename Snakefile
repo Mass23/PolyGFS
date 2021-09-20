@@ -140,7 +140,7 @@ rule bam2vcf:
     message:
         "Calling SNPs on {wildcards.mag}"
     shell:
-        "(date && bcftools mpileup --max-depth 10000 -f {input.ref} {input.bam} | bcftools call -mv -Ob -o {params.calls} && "
+        "(date && mkdir -p $(dirname {output.gz}) && bcftools mpileup --max-depth 10000 -f {input.ref} {input.bam} | bcftools call -mv -Ob -o {params.calls} && "
         "bcftools view -i '%QUAL>=20' {params.calls} > {params.filtered} && "
         "bgzip {params.filtered} > {output.gz} && date) &> {log}"
 
@@ -164,7 +164,7 @@ rule sed_GI_bam2vcf:
     message:
         "Calling SNPs on {wildcards.sed_gi} and {wildcards.sample}"
     shell:
-        "(date && bcftools mpileup --threads {threads} --max-depth 10000 -f {input.ref} {input.bam} | bcftools call -mv -Ob -o {params.calls} && "
+        "(date && mkdir -p $(dirname {output.gz}) && bcftools mpileup --threads {threads} --max-depth 10000 -f {input.ref} {input.bam} | bcftools call -mv -Ob -o {params.calls} && "
         "bcftools view -i '%QUAL>=20' {params.calls} > {params.filtered} && "
         "bgzip -f {params.filtered} > {output.gz} && date) &> {log}"
 
