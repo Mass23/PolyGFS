@@ -129,19 +129,20 @@ rule bam2vcf:
         ref=os.path.join(BIN_DIR, "{mag}.fa"),
         bam=rules.merge_bam.output
     output:
-        calls=temp(os.path.join(RESULTS_DIR, "vcf/{mag}_calls.bcf")),
-        filtered=temp(os.path.join(RESULTS_DIR, "vcf/{mag}_filtered.bcf")),
         gz=os.path.join(RESULTS_DIR, "vcf/{mag}_filtered.bcf.gz")
     log:
         os.path.join(RESULTS_DIR, "logs/{mag}_bam2vcf.log")
     conda:
         os.path.join(ENV_DIR, "bcftools.yaml")
+    params:
+        calls=temp(os.path.join(RESULTS_DIR, "vcf/{mag}_calls.bcf")),
+        filtered=temp(os.path.join(RESULTS_DIR, "vcf/{mag}_filtered.bcf"))
     message:
         "Calling SNPs on {wildcards.mag}"
     shell:
-        "(date && bcftools mpileup --max-depth 10000 -f {input.ref} {input.bam} | bcftools call -mv -Ob -o {output.calls} && "
-        "bcftools view -i '%QUAL>=20' {output.calls} > {output.filtered} && "
-        "bgzip {output.filtered} > {output.gz} && date) &> {log}"
+        "(date && bcftools mpileup --max-depth 10000 -f {input.ref} {input.bam} | bcftools call -mv -Ob -o {params.calls} && "
+        "bcftools view -i '%QUAL>=20' {params.calls} > {params.filtered} && "
+        "bgzip {params.filtered} > {output.gz} && date) &> {log}"
 
 rule sed_GI_bam2vcf:
     input:
@@ -159,7 +160,7 @@ rule sed_GI_bam2vcf:
         sed_gi="|".join(SED_GI)
     params:
         calls=temp(os.path.join(RESULTS_DIR, "sed_gi_vcf/{sed_gi}_{sample}_calls.bcf")),
-        filtered=temp(os.path.join(RESULTS_DIR, "sed_gi_vcf/{sed_gi}_{sample}_filtered.bcf")),
+        filtered=temp(os.path.join(RESULTS_DIR, "sed_gi_vcf/{sed_gi}_{sample}_filtered.bcf"))
     message:
         "Calling SNPs on {wildcards.sed_gi} and {wildcards.sample}"
     shell:
