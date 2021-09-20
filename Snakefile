@@ -148,8 +148,6 @@ rule sed_GI_bam2vcf:
         ref=os.path.join(BIN_DIR, "{sed_gi}.fa"),
         bam=os.path.join(RESULTS_DIR, "mapped_reads/{sed_gi}_{sample}.sorted.bam")
     output:
-        calls=temp(os.path.join(RESULTS_DIR, "sed_gi_vcf/{sed_gi}_{sample}_calls.bcf")),
-        filtered=temp(os.path.join(RESULTS_DIR, "sed_gi_vcf/{sed_gi}_{sample}_filtered.bcf")),
         gz=os.path.join(RESULTS_DIR, "sed_gi_vcf/{sed_gi}_{sample}_filtered.bcf.gz")
     log:
         os.path.join(RESULTS_DIR, "logs/{sed_gi}_{sample}_sed_GI_vcf.log")
@@ -159,12 +157,15 @@ rule sed_GI_bam2vcf:
         config["bwa"]["vcf"]["threads"]
     wildcard_constraints:
         sed_gi="|".join(SED_GI)
+    params:
+        calls=temp(os.path.join(RESULTS_DIR, "sed_gi_vcf/{sed_gi}_{sample}_calls.bcf")),
+        filtered=temp(os.path.join(RESULTS_DIR, "sed_gi_vcf/{sed_gi}_{sample}_filtered.bcf")),
     message:
         "Calling SNPs on {wildcards.sed_gi} and {wildcards.sample}"
     shell:
-        "(date && bcftools mpileup --threads {threads} --max-depth 10000 -f {input.ref} {input.bam} | bcftools call -mv -Ob -o {output.calls} && "
-        "bcftools view -i '%QUAL>=20' {output.calls} > {output.filtered} && "
-        "bgzip -f {output.filtered} > {output.gz} && date) &> {log}"
+        "(date && bcftools mpileup --threads {threads} --max-depth 10000 -f {input.ref} {input.bam} | bcftools call -mv -Ob -o {params.calls} && "
+        "bcftools view -i '%QUAL>=20' {params.calls} > {params.filtered} && "
+        "bgzip -f {params.filtered} > {output.gz} && date) &> {log}"
 
 
 ###########
