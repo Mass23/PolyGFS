@@ -42,7 +42,7 @@ rule all:
 #        expand(os.path.join(RESULTS_DIR, "merged_bam/{mag}_merged.bam"), mag=MAG),
 #        expand(os.path.join(RESULTS_DIR, "vcf/{mag}_filtered.bcf.gz"), mag=MAG),
 #        expand(os.path.join(RESULTS_DIR, "coverage/{mag}_depth.cov"), mag=MAG),
-#        expand(os.path.join(RESULTS_DIR, "sed_gi_vcf/{sed_gi}_{sample}_filtered.bcf.gz"), sed_gi=SED_GI, sample=SAMPLES)
+        expand(os.path.join(RESULTS_DIR, "sed_gi_vcf/{sed_gi}_{sample}_filtered.bcf.gz"), sed_gi=SED_GI, sample=SAMPLES)
 
 
 ###########
@@ -87,7 +87,6 @@ rule bwa_map:
         "Mapping {wildcards.sample} onto {wildcards.mag}"
     shell:
         """(date && bwa mem -t {threads} -R '@RG\\tID:{wildcards.sample}\\tSM:{wildcards.sample}' $(echo {input.ref_genome} | sed 's/.fa//g') {input.r1} {input.r2} | samtools view -Sb -F 4 - > {output} && date) &> {log}"""
-
 
 rule sort_index_bam:
     input:
@@ -157,7 +156,7 @@ rule sed_GI_bam2vcf:
     conda:
         os.path.join(ENV_DIR, "bcftools.yaml")
     threads:
-        config["bwa"]["threads"]
+        config["bwa"]["vcf"]["threads"]
     wildcard_constraints:
         sed_gi="|".join(SED_GI)
     message:

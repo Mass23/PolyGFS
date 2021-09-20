@@ -19,4 +19,9 @@ fastq_dir: "/mnt/esb-storage-01/NOMIS/coassembly/preproc"
 ##########
 # Params #
 bwa:
-  threads: 12
+  threads: 24
+  sort: 
+    threads: 4
+    chunk_size: "4G"
+  vcf:
+    threads: 8
