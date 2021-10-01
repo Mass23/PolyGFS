@@ -215,3 +215,49 @@ rule depth:
     shell:
         "(date && mkdir -p $(dirname {output.depth}) && bedtools makewindows -g {input.gen_file} -w 1000 > {output.wind} && "
         "bedtools multicov -bams {input.bam} -bed {output.wind} > {output.depth} && date) &> {log}"
+
+rule create_dirs:
+    input:
+    output:
+    log:
+    threads:
+    conda:
+    message:
+        "Create directories for the next steps."
+    shell:
+
+
+rule annot_genome:
+    input:
+    output:
+    log:
+    threads:
+    conda:
+    message:
+        "Annotate the genome with prokka and mantis"
+    shell:
+        "prokka --prefix {mag} --kingdom Bacteria --genus polaromonas genomes/{mag}.fa"
+        "python mantis/ run_mantis -t {mag}/{mag}.faa -o {mag}/ -od polaromonas --mantis_config {input.config} --hmmer_threads {params.cores} --cores {threads} --memory {config[mantis][single_mem]} --kegg_matrix"
+
+rule nuc_div:
+    input:
+        {genome}
+    output:
+    run:
+        def list_vcfs(genome):
+            return(glob.glob('polymorphism/{genome}*.bcf.gz'))
+
+        for genome in genomes:
+            samples = list_vcfs(genome)
+            print(samples)
+        
+            for sample1 in samples:
+                subprocess.call(' '.join(['bcftools','index',sample]), shell = True)
+                args = ['vcftools', '--gzvcf', sample, '--out', sample.replace('.bcf.gz',''), '--window-pi', '1000', '--minQ', '30', '--maf', '0.1']
+                subprocess.call(' '.join(args), shell = True)
+
+    log:
+    threads:
+    conda:
+    message:
+        "Compute nuc. diversity with VCFtools of the VCF files"
