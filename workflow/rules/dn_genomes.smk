@@ -9,41 +9,14 @@ localrules:
 
 ###########################
 # default 
-repos = ["genbank","refseq"]
-
 rule dn_genomes:
     input:
-        expand('Genomes/{repo}', genus=genera, repo=repos),
-        gunzip_genomes(),
-        copy_genomes()
+        os.path.join(RESULTS_DIR,"Genomes")
+        os.path.join(RESULTS_DIR, "genomes_list.txt")
     output:
-        touch("status/annotate_genomes.done")
+        touch("status/dn_genomes.txt")
 
-########################################
-# checkpoint rules for collecting bins #
-########################################
-
-# kept the mantis one for inspiration
-checkpoint bin_collect:
-    input:
-        os.path.join(DATA_DIR, "{sample}/run1/Binning/selected_DASTool_bins")
-    output:
-        directory(os.path.join(RESULTS_DIR, "mantis_links/{sample}_bins"))
-    shell:
-        "ln -vs {input} {output}"
-
-rule bin_link:
-    input:
-        os.path.join(RESULTS_DIR, "mantis_links/{sample}_bins/{i}.contigs.fa"),
-    output:
-        os.path.join(RESULTS_DIR, "mantis_bins/{sample}__{i}.contigs.fa")
-    wildcard_constraints:
-        sample="|".join(SAMPLES)
-        #i="(\w\.)+"
-    shell:
-        "ln -vs {input} {output}"
-
-# end it by writing the file "mags_list.txt" that contains the ones that were collected
+# end it by writing the file "genomes_list.txt" that contains the ones that were collected
 
 ########################################
 # rules for ncbi-download-genomes #
@@ -53,18 +26,29 @@ rule download_genomes:
     input:
         GENOMES
     output:
-        directory(os.path.join(RESULTS_DIR,"Genomes/"))
+        directory(os.path.join(RESULTS_DIR,"Genomes")),
+        os.path.join(RESULTS_DIR,"Genomes/download_genomes.done")
     threads:
         1
+    conda:
+        os.path.join(ENV_DIR, "ncbi-g-d.yaml")
     run:
         for line in open(input, 'r').readline():
             if line.startswith('GCA'):
-                args = ['ncbi-genome-download','-o',output,'--formats','fasta','-s','genbank','-A',line,'all']
+                args = ['ncbi-genome-download','-o',output[0],'--formats','fasta','--flat-output','-s','genbank','-A',line,'all']
                 subprocess.call(' '.join(args), shell = True)
             elif input.startswith('GCF'):
-                args = ['ncbi-genome-download','-o',output,'--formats','fasta','-s','refseq','-A',line,'all']
+                args = ['ncbi-genome-download','-o',output[0],'--formats','fasta','--flat-output','-s','refseq','-A',line,'all']
                 subprocess.call(' '.join(args), shell = True)
             else:
                 print(str(input) + ' is not a refseq or genbank accession!')
+        os.system('touch ' + str(output[1]))
 
-# end it by writing the file "genomes_list.txt" that contains the ones that were collected
+rule create_mags_dir:
+    input:
+        os.path.join(RESULTS_DIR,"Genomes/download_genomes.done")
+    output:
+        os.path.join(RESULTS_DIR, "genomes_list.txt")
+    shell:
+        "$(basename -s '.fasta' $(ls $(dirname {input}))/*.fasta) > genomes_list.txt"
+

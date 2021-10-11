@@ -129,23 +129,4 @@ rule mantis_reformat_consensus:
         # merge annotations after "|", remove "|" separator
         "(date && paste <(cut -d '|' -f1 {input} | sed 's/\\t$//') <(cut -d '|' -f2 {input} | sed 's/^\\t//;s/\\t/;/g') > {output} && date) &> >(tee {log})"
 
-def bins_mantis(wildcards):
-    checkpoint_output = checkpoints.bin_collect_mantis.get(**wildcards).output[0]
-    return expand(os.path.join(RESULTS_DIR, "mantis/{sample}__{i}/consensus_annotation.reformatted.tsv"),
-        i=glob_wildcards(os.path.join(checkpoint_output, "{i}.contigs.fa")).i
-        )
-
-rule bin_folder_sample_mantis:
-    input:
-        bins_mantis
-    wildcard_constraints:
-        sample="|".join(SAMPLES)
-    output:
-        touch(os.path.join(RESULTS_DIR, "logs/{sample}_mantis.done"))
-
-rule bin_folder_mantis:
-    input:
-        expand(os.path.join(RESULTS_DIR, "logs/{sample}_mantis.done"), sample=SAMPLES)
-    output:
-        touch(os.path.join(RESULTS_DIR, "logs/mantis.done"))
 
