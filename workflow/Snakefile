@@ -34,6 +34,30 @@ if "dn_genomes" in STEPS:
         "status/dn_genomes.done"
     ]
 
+# Derep MAGs
+if "drep_mags" in STEPS:
+    include:
+        "rules/drep_mags.smk"
+    TARGETS += [
+        "status/drep_mags.done"
+    ]
+
+# Phylogenomic analysis
+if "phylo_analysis" in STEPS:
+    include:
+        "rules/phylo_analysis.smk"
+    TARGETS += [
+        "status/phylo_analysis.done"
+    ]
+
+# Completeness matrix 
+if "comp_matrix" in STEPS:
+    include:
+        "rules/comp_matrix.smk"
+    TARGETS += [
+        "status/comp_matrix.done"
+    ]
+
 # Annotate genomes
 if "annotate_genomes" in STEPS:
     include:
@@ -42,69 +66,38 @@ if "annotate_genomes" in STEPS:
         "status/annotate_genomes.done"
     ]
 
-# Eukaryotes 
-if "eukaryotes" in STEPS:
+# Pangenome
+if "pan_genome" in STEPS:
     include:
-        "rules/eukaryotes.smk"
+        "rules/pan_genome.smk"
     TARGETS += [
-        "status/eukaryotes.done"
+        "status/pan_genome.done"
     ]
 
-# Bins
-if "taxonomy" or "functions" or "mags" in STEPS:
+# Annotate pan genomes
+if "annotate_pan" in STEPS:
     include:
-        "rules/bins.smk"
+        "rules/annotate_pan.smk"
     TARGETS += [
-        "status/bins.done"
+        "status/annotate_pan.done"
     ]
 
-# Eukaryote binning
-if "euk_bin" in STEPS:
+# Map the reads
+if "map_reads" in STEPS:
     include:
-        "rules/euk_bin.smk"
+        "rules/map_reads.smk"
     TARGETS += [
-        "status/euk_bin.done"
+        "status/map_reads.done"
     ]
 
-# GTDBtk + Checkm
-if "taxonomy" in STEPS:
+# Variant calling
+if "var_calling" in STEPS:
     include:
-        "rules/taxonomy.smk"
+        "rules/var_calling.smk"
     TARGETS += [
-        "status/gtdbtk_checkm.done"
+        "status/var_calling.done"
     ]
 
-# Functional annotation (METABOLIC, MAGICCAVE, FUNCS, antiSMASH)
-if "functions" in STEPS:
-    include:
-        "rules/functions.smk"
-    TARGETS += [
-        "status/functions.done"
-    ]
-
-# MANTIS annotation
-if "mantis" in STEPS:
-    include:
-        "rules/mantis.smk"
-    TARGETS += [
-        "status/mantis.done"
-    ]
-
-# Coassembly and Binning
-if "coassembly_binning" in STEPS:
-    include:
-        "rules/coassembly_binning.smk"
-    TARGETS += [
-        "status/coassembly_binning.done"
-    ]
-
-# gRodon + PopCOGent 
-if "misc" in STEPS:
-    include:
-        "rules/misc.smk"
-    TARGETS += [
-        "status/misc.done"
-    ]
 
 # No targets
 if len(TARGETS) == 0:
