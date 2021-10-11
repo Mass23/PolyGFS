@@ -22,7 +22,9 @@ rule dn_genomes:
 ########################################
 # checkpoint rules for collecting bins #
 ########################################
-checkpoint bin_collect_mantis:
+
+# kept the mantis one for inspiration
+checkpoint bin_collect:
     input:
         os.path.join(DATA_DIR, "{sample}/run1/Binning/selected_DASTool_bins")
     output:
@@ -30,7 +32,7 @@ checkpoint bin_collect_mantis:
     shell:
         "ln -vs {input} {output}"
 
-rule bin_link_mantis:
+rule bin_link:
     input:
         os.path.join(RESULTS_DIR, "mantis_links/{sample}_bins/{i}.contigs.fa"),
     output:
@@ -41,9 +43,11 @@ rule bin_link_mantis:
     shell:
         "ln -vs {input} {output}"
 
-####################
+# end it by writing the file "mags_list.txt" that contains the ones that were collected
+
+########################################
 # rules for ncbi-download-genomes #
-####################
+########################################
 
 rule download_genomes:
     input:
@@ -62,3 +66,5 @@ rule download_genomes:
                 subprocess.call(' '.join(args), shell = True)
             else:
                 print(str(input) + ' is not a refseq or genbank accession!')
+
+# end it by writing the file "genomes_list.txt" that contains the ones that were collected
