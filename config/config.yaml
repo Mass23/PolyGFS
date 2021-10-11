@@ -1,3 +1,16 @@
+############################################################
+# STEPS
+
+# Steps to be done
+# steps: ["imp"]  # RUN THIS FIRST and launch IMP3 outside of the workflow
+
+# Next the following steps should be run
+steps: ["dn_genomes", "drep_mags", "phylo_analysis", "comp_matrix", "annotate_genomes", "pan_genome", "map_reads", "var_calling"]
+
+
+############################################################
+# INPUT
+
 # Directory where the files are located
 work_dir: "/mnt/md1200/epfl_sber/NOMIS_COASSEMBLY"
 
@@ -16,9 +29,6 @@ bin_dir: "/mnt/esb-storage-01/NOMIS/coassembly/polaromonas_bins"
 # Directory with the preprocessed FASTQ reads
 fastq_dir: "/mnt/esb-storage-01/NOMIS/coassembly/preproc"
 
-# Set of HMM to use for Gtotree
-gtotree:
-  hmm: 'Gammaproteobacteria'
 
 ##########
 # Params #
@@ -29,3 +39,7 @@ bwa:
     chunk_size: "4G"
   vcf:
     threads: 8
+
+# Set of HMM to use for Gtotree
+gtotree:
+  hmm: 'Gammaproteobacteria'
