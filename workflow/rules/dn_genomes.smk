@@ -12,9 +12,8 @@ localrules:
 rule dn_genomes:
     input:
         os.path.join(RESULTS_DIR,"Genomes")
-        os.path.join(RESULTS_DIR, "genomes_list.txt")
     output:
-        touch("status/dn_genomes.txt")
+        os.path.join(RESULTS_DIR, "genomes_list.txt")
 
 # end it by writing the file "genomes_list.txt" that contains the ones that were collected
 
@@ -32,17 +31,8 @@ rule download_genomes:
         1
     conda:
         os.path.join(ENV_DIR, "ncbi-g-d.yaml")
-    run:
-        for line in open(input, 'r').readline():
-            if line.startswith('GCA'):
-                args = ['ncbi-genome-download','-o',output[0],'--formats','fasta','--flat-output','-s','genbank','-A',line,'all']
-                subprocess.call(' '.join(args), shell = True)
-            elif input.startswith('GCF'):
-                args = ['ncbi-genome-download','-o',output[0],'--formats','fasta','--flat-output','-s','refseq','-A',line,'all']
-                subprocess.call(' '.join(args), shell = True)
-            else:
-                print(str(input) + ' is not a refseq or genbank accession!')
-        os.system('touch ' + str(output[1]))
+    script:
+        "dn_genomes_script.py"
 
 rule create_mags_dir_file:
     input:

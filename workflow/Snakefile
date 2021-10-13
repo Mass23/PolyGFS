@@ -23,8 +23,8 @@ include:
 # TARGETS & RULES
 
 # List of (main) targets to be created
-TARGETS = []
-TEPS = ['dn_genomes']
+TARGETS = ['genomes_list.txt']
+STEPS = ['dn_genomes']
 
 # Download genomes
 if "dn_genomes" in STEPS:

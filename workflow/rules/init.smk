@@ -13,7 +13,7 @@ from Bio import SeqIO
 ##############################
 # CONFIG
 # can be overwritten by using --configfile <path to config> when calling snakemake
-configfile:"config.yaml"
+configfile:"config/config.yaml"
 
 ##############################
 # Relevant directories
@@ -28,7 +28,7 @@ FASTQ_DIR = config["fastq_dir"]
 # Input
 MAGS = [line.strip() for line in open("mags_list.txt").readlines()]
 SAMPLES = [line.strip() for line in open("samples_list.txt").readlines()]
-GENOMES = [line.strip() for line in open("accessions_list.txt").readlines()]
+GENOMES = "accessions_list.txt"
 
 ##############################
 # Params

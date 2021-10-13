@@ -12,16 +12,16 @@ steps: ["dn_genomes"]#, "drep_mags", "phylo_analysis", "comp_matrix", "annotate_
 # INPUT
 
 # Directory where the files are located
-work_dir: "/mnt/md1200/epfl_sber/NOMIS_COASSEMBLY"
+work_dir: "/mnt/md1200/epfl_sber/massimo/ChapterII/PolyGFS"
 
 # Directory where the results are to be stored
-results_dir: "/mnt/esb-storage-01/NOMIS/coassembly/results"
+results_dir: "/mnt/md1200/epfl_sber/massimo/ChapterII/PolyGFS/results"
 
 # Directory where conda environments are located
-env_dir: "/mnt/md1200/epfl_sber/NOMIS_COASSEMBLY/envs"
+env_dir: "/mnt/md1200/epfl_sber/massimo/ChapterII/PolyGFS/envs"
 
 # Directory with scripts for analyses
-scripts_dir: "/mnt/md1200/epfl_sber/NOMIS_COASSEMBLY/scripts"
+scripts_dir: "/mnt/md1200/epfl_sber/massimo/ChapterII/PolyGFS/workflow/scripts"
 
 # Directory with the bins of interest
 bin_dir: "/mnt/esb-storage-01/NOMIS/coassembly/polaromonas_bins"
