@@ -44,7 +44,7 @@ rule download_genomes:
                 print(str(input) + ' is not a refseq or genbank accession!')
         os.system('touch ' + str(output[1]))
 
-rule create_mags_dir:
+rule create_mags_dir_file:
     input:
         os.path.join(RESULTS_DIR,"Genomes/download_genomes.done")
     output:

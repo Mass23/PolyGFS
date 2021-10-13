@@ -24,7 +24,7 @@ include:
 
 # List of (main) targets to be created
 TARGETS = []
-
+TEPS = ['dn_genomes']
 
 # Download genomes
 if "dn_genomes" in STEPS:

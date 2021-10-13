@@ -5,7 +5,7 @@
 # steps: ["imp"]  # RUN THIS FIRST and launch IMP3 outside of the workflow
 
 # Next the following steps should be run
-steps: ["dn_genomes", "drep_mags", "phylo_analysis", "comp_matrix", "annotate_genomes", "pan_genome", "map_reads", "var_calling"]
+steps: ["dn_genomes"]#, "drep_mags", "phylo_analysis", "comp_matrix", "annotate_genomes", "pan_genome", "map_reads", "var_calling"]
 
 
 ############################################################
@@ -29,6 +29,8 @@ bin_dir: "/mnt/esb-storage-01/NOMIS/coassembly/polaromonas_bins"
 # Directory with the preprocessed FASTQ reads
 fastq_dir: "/mnt/esb-storage-01/NOMIS/coassembly/preproc"
 
+# Directors of the gtdbtk database
+gtdbtk_db_dir: "/mnt/esb-storage-01/NOMIS/databases/release202"
 
 ##########
 # Params #

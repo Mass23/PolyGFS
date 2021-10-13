@@ -1,0 +1,48 @@
+name: gtdbtk
+channels:
+  - bioconda
+  - defaults
+dependencies:
+  - _libgcc_mutex=0.1=main
+  - _openmp_mutex=4.5=1_gnu
+  - blas=1.0=mkl
+  - boost=1.67.0=py27_4
+  - bzip2=1.0.8=h7b6447c_0
+  - ca-certificates=2021.9.30=h06a4308_1
+  - certifi=2020.6.20=pyhd3eb1b0_3
+  - dendropy=4.5.2=pyh3252c3a_0
+  - fastani=1.1=h4ef8376_0
+  - fasttree=2.1.10=h779adbc_5
+  - future=0.18.2=py27_0
+  - gtdbtk=0.3.2=py27_1
+  - hmmer=3.3.2=h1b792b2_1
+  - icu=58.2=he6710b0_3
+  - intel-openmp=2021.3.0=h06a4308_3350
+  - libboost=1.67.0=h46d08c1_4
+  - libffi=3.3=he6710b0_2
+  - libgcc-ng=9.3.0=h5101ec6_17
+  - libgfortran-ng=7.5.0=ha8ba4b0_17
+  - libgfortran4=7.5.0=ha8ba4b0_17
+  - libgomp=9.3.0=h5101ec6_17
+  - libstdcxx-ng=9.3.0=hd4cf53a_17
+  - mkl=2020.2=256
+  - mkl-service=2.3.0=py27he904b0f_0
+  - mkl_fft=1.0.15=py27ha843d7b_0
+  - mkl_random=1.1.0=py27hd6b4f25_0
+  - ncurses=6.2=he6710b0_1
+  - numpy=1.16.6=py27hbc911f0_0
+  - numpy-base=1.16.6=py27hde5b4d6_0
+  - pip=19.3.1=py27_0
+  - pplacer=1.1.alpha19=h9ee0642_2
+  - prodigal=2.6.3=h779adbc_3
+  - py-boost=1.67.0=py27h04863e7_4
+  - python=2.7.18=ha1903f6_2
+  - readline=8.1=h27cfd23_0
+  - setuptools=44.0.0=py27_0
+  - six=1.16.0=pyhd3eb1b0_0
+  - sqlite=3.36.0=hc218d9a_0
+  - tk=8.6.11=h1ccaba5_0
+  - wheel=0.37.0=pyhd3eb1b0_1
+  - xz=5.2.5=h7b6447c_0
+  - zlib=1.2.11=h7b6447c_3
+prefix: /home/massimo.bourquin/apps/miniconda3/envs/gtdbtk
