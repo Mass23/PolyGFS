@@ -27,7 +27,7 @@ rule gtdbtk:
     log:
         os.path.join(RESULTS_DIR, "logs/gtdbtk.log")
     conda:
-        os.path.join(ENV_DIR, "gtdbtk.yaml")
+        os.path.join(ENV_DIR, "gtdbtk_updated.yaml")
     params:
         config["gtdbtk"]["path"]
     threads:
