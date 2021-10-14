@@ -24,7 +24,7 @@ env_dir: "/mnt/md1200/epfl_sber/massimo/ChapterII/PolyGFS/envs"
 scripts_dir: "/mnt/md1200/epfl_sber/massimo/ChapterII/PolyGFS/workflow/scripts"
 
 # Directory with the bins of interest
-bin_dir: "/mnt/esb-storage-01/NOMIS/coassembly/polaromonas_bins"
+mags_dir: "/mnt/esb-storage-01/NOMIS/ROCKS/rock_bins/"
 
 # Directory with the preprocessed FASTQ reads
 fastq_dir: "/mnt/esb-storage-01/NOMIS/coassembly/preproc"
@@ -34,6 +34,13 @@ gtdbtk_db_dir: "/mnt/esb-storage-01/NOMIS/databases/release202"
 
 ##########
 # Params #
+dn_genomes:
+  thread: 8
+
+gtdbtk:
+  path: "/mnt/esb-storage-01/NOMIS/databases/release202"
+  threads: 32
+
 bwa:
   threads: 24
   sort: 

@@ -11,11 +11,12 @@ localrules:
 # default 
 rule dn_genomes:
     input:
-        os.path.join(RESULTS_DIR,"Genomes")
+        os.path.join(RESULTS_DIR,"Genomes"),
+        os.path.join(DATA_DIR, "genomes_list.txt")
     output:
-        os.path.join(RESULTS_DIR, "genomes_list.txt")
+        touch("status/dn_genomes.done")
 
-# end it by writing the file "genomes_list.txt" that contains the ones that were collected
+# end it by writing ehe file "genomes_list.txt" that contains the ones that were collected
 
 ########################################
 # rules for ncbi-download-genomes #
@@ -26,19 +27,20 @@ rule download_genomes:
         GENOMES
     output:
         directory(os.path.join(RESULTS_DIR,"Genomes")),
-        os.path.join(RESULTS_DIR,"Genomes/download_genomes.done")
+        os.path.join(RESULTS_DIR,"status/download_genomes.done")
     threads:
-        1
+        config["dn_genomes"]["thread"]
     conda:
         os.path.join(ENV_DIR, "ncbi-g-d.yaml")
     script:
-        "dn_genomes_script.py"
+        os.path.join(SRC_DIR, "dn_genomes_script.py")
 
 rule create_mags_dir_file:
     input:
-        os.path.join(RESULTS_DIR,"Genomes/download_genomes.done")
+        os.path.join(RESULTS_DIR,"status/download_genomes.done"),
+        os.path.join(RESULTS_DIR,"Genomes/")
     output:
-        os.path.join(RESULTS_DIR, "genomes_list.txt")
+        os.path.join(DATA_DIR, "genomes_list.txt")
     shell:
-        "$(basename -s '.fasta' $(ls $(dirname {input}))/*.fasta) > genomes_list.txt"
+        "basename -s '.fna.gz' $(ls $(dirname {input[1]})/*.fna.gz) > genomes_list.txt"
 

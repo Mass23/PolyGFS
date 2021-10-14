@@ -1,61 +1,39 @@
-# bins workflow
-# Collects all the bins from each sample in single folder 
+# mags workflow
+# taxonomy of the mags, and then mags selection 
 
-localrules: bin_collect, bin_link, bin_folder_sample, bin_folder
+localrules:
 
 ###########################
 # default
 
-rule bins:
+rule collect_mags:
     input:
-        os.path.join(RESULTS_DIR, "data/mag_list.txt")
+        os.path.join(RESULTS_DIR, "status/download_genomes.done"),
+        os.path.join(RESULTS_DIR, "gtdbtk_output")
     output:
-        touch("status/bins.done")
+        touch("status/collect_mags.done")
 
 
-########################################
-# checkpoint rules for collecting bins #
-########################################
-checkpoint bin_collect:
+################################################
+# rule for collecting mags with taxo. matching #
+################################################
+
+rule gtdbtk:
     input:
-        os.path.join(DATA_DIR, "{sample}/run1/Binning/selected_DASTool_bins")
+        os.path.join(DATA_DIR, "genomes_list.txt"),
+        os.path.join(MAGS_DIR)
     output:
-        directory(os.path.join(RESULTS_DIR, "links/{sample}_bins"))
+        directory(os.path.join(RESULTS_DIR, "gtdbtk_output"))
+    log:
+        os.path.join(RESULTS_DIR, "logs/gtdbtk.log")
+    conda:
+        os.path.join(ENV_DIR, "gtdbtk.yaml")
+    params:
+        config["gtdbtk"]["path"]
+    threads:
+        config["gtdbtk"]["threads"]
+    message:
+        "Running GTDB toolkit on MAGs"
     shell:
-        "ln -vs {input} {output}"
+        "(date && export GTDBTK_DATA_PATH={params} && gtdbtk classify_wf --cpus {threads} -x fasta --genome_dir {input[1]} --out_dir {output} && date) &> >(tee {log})"
 
-rule bin_link:
-    input:
-        os.path.join(RESULTS_DIR, "links/{sample}_bins/{i}.contigs.fa"),
-    output:
-        os.path.join(RESULTS_DIR, "bins/{sample}__{i}.contigs.fa")
-    wildcard_constraints:
-        sample="|".join(SAMPLES)
-        #i="(\w\.)+"
-    shell:
-        "ln -vs {input} {output}"
-
-def bins(wildcards):
-    checkpoint_output = checkpoints.bin_collect.get(**wildcards).output[0]
-    return expand(os.path.join(RESULTS_DIR, "bins/{{sample}}__{i}.contigs.fa"),
-        i=glob_wildcards(os.path.join(checkpoint_output, "{i}.contigs.fa")).i)
-
-rule bin_folder_sample:
-    input:
-        bins
-    wildcard_constraints:
-        sample="|".join(SAMPLES)
-    output:
-        os.path.join(RESULTS_DIR, "logs/{sample}_bin_collection.done"),
-    shell:
-        "for fname in {input} ; do echo $(basename -s \".contigs.fa\" \"${{fname}}\") ; done > {output}"
-        
-
-rule bin_folder:
-    input:
-        expand(os.path.join(RESULTS_DIR, "logs/{sample}_bin_collection.done"), sample=SAMPLES)
-    output:
-        os.path.join(RESULTS_DIR, "data/mag_list.txt"),
-        touch(os.path.join(RESULTS_DIR, "bins/bin_collection.done"))
-    shell:
-        "cat {input} > {output[0]}"

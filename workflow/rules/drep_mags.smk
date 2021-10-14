@@ -43,6 +43,6 @@ rule drep_mags:
         os.path.join(RESULTS_DIR, "")
     shell:
         "cat genomes_list.txt mags_list.txt > merged_genomes_mags_list.txt"
-        "dRep dereplicate PanPolyGFS -p CORES -g merged_genomes_mags_list.txt -sa 0.95 -comp 90 -con 10"
+        "dRep dereplicate PanPolyGFS -p CORES -g merged_genomes_mags_list.txt -sa 0.99 -comp 90 -con 5"
 
 

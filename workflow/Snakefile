@@ -23,8 +23,8 @@ include:
 # TARGETS & RULES
 
 # List of (main) targets to be created
-TARGETS = ['genomes_list.txt']
-STEPS = ['dn_genomes']
+TARGETS = []
+STEPS = ['dn_genomes', 'collect_mags']
 
 # Download genomes
 if "dn_genomes" in STEPS:
@@ -32,6 +32,14 @@ if "dn_genomes" in STEPS:
         "rules/dn_genomes.smk"
     TARGETS += [
         "status/dn_genomes.done"
+    ]
+
+# Collect MAGs matching gtdbtk taxonomy
+if "collect_mags" in STEPS:
+    include:
+        "rules/collect_mags.smk"
+    TARGETS += [
+        "status/collect_mags.done"
     ]
 
 # Derep MAGs

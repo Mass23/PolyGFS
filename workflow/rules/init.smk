@@ -21,7 +21,7 @@ DATA_DIR = config["work_dir"]
 RESULTS_DIR = config["results_dir"]
 ENV_DIR = config["env_dir"]
 SRC_DIR = config["scripts_dir"]
-BIN_DIR = config["bin_dir"]
+MAGS_DIR = config["mags_dir"]
 FASTQ_DIR = config["fastq_dir"]
 
 ##############################
