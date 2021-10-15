@@ -10,9 +10,15 @@ localrules:
 ###########################
 rule phylo_analysis:
     input:
-        os.path.join(DATA_DIR, "status/drep_mags.done")
+        os.path.join(RESULTS_DIR,"gtotree_output")
     output:
         touch("status/phylo_analysis.done")
+
+rule run_gtotree:
+    input:
+        os.path.join(DATA_DIR, "status/drep_mags.done")
+    output:
+        directory(os.path.join(RESULTS_DIR, "gtotree_output"))
     conda:
         os.path.join(ENV_DIR, "gtotree.yaml")
     params:

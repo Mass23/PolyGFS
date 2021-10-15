@@ -5,7 +5,7 @@
 # steps: ["imp"]  # RUN THIS FIRST and launch IMP3 outside of the workflow
 
 # Next the following steps should be run
-steps: ["dn_genomes"]#, "drep_mags", "phylo_analysis", "comp_matrix", "annotate_genomes", "pan_genome", "map_reads", "var_calling"]
+steps: ["dn_genomes", "drep_mags", "collect_mags", "phylo_analysis"]#, "comp_matrix", "annotate_genomes", "pan_genome", "map_reads", "var_calling"]
 
 
 ############################################################
@@ -43,6 +43,9 @@ gtdbtk:
 
 drep:
   threads: 32
+
+checkm:
+  db_path: "/mnt/esb-storage-01/NOMIS/databases"
 
 bwa:
   threads: 24
