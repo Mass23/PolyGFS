@@ -15,7 +15,7 @@ steps: ["dn_genomes"]#, "drep_mags", "phylo_analysis", "comp_matrix", "annotate_
 work_dir: "/mnt/md1200/epfl_sber/massimo/ChapterII/PolyGFS"
 
 # Directory where the results are to be stored
-results_dir: "/mnt/md1200/epfl_sber/massimo/ChapterII/PolyGFS/results"
+results_dir: "/mnt/md1200/epfl_sber/massimo/ChapterII/results"
 
 # Directory where conda environments are located
 env_dir: "/mnt/md1200/epfl_sber/massimo/ChapterII/PolyGFS/envs"
@@ -41,6 +41,9 @@ gtdbtk:
   path: "/mnt/esb-storage-01/NOMIS/databases/release202"
   threads: 32
 
+drep:
+  threads: 32
+
 bwa:
   threads: 24
   sort: 
@@ -52,3 +55,4 @@ bwa:
 # Set of HMM to use for Gtotree
 gtotree:
   hmm: 'Gammaproteobacteria'
+  threads: 32

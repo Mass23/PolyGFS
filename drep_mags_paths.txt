@@ -1,0 +1,2 @@
+/mnt/md1200/epfl_sber/massimo/ChapterII/results/drep_mags/dereplicated_genomes/GL_R68_GL53_UP_2_G59.contigs.fasta
+/mnt/md1200/epfl_sber/massimo/ChapterII/results/drep_mags/dereplicated_genomes/GL_R9_GL11_UP_2_G4.2.2.contigs.fasta

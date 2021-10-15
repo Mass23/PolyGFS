@@ -26,7 +26,7 @@ FASTQ_DIR = config["fastq_dir"]
 
 ##############################
 # Input
-MAGS = [line.strip() for line in open("mags_list.txt").readlines()]
+#MAGS = [line.strip() for line in open("mags_list.txt").readlines()]
 SAMPLES = [line.strip() for line in open("samples_list.txt").readlines()]
 GENOMES = "accessions_list.txt"
 

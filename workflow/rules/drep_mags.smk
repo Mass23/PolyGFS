@@ -10,39 +10,19 @@ localrules:
 ###########################
 # default        
 
-rule gtdbtk:
-    input:
-        os.path.join(RESULTS_DIR, "bins/bin_collection.done")
-    output:
-        directory(os.path.join(RESULTS_DIR, "gtdbtk_output"))
-    log:
-        os.path.join(RESULTS_DIR, "logs/gtdbtk.log")
-    conda:
-        os.path.join(ENV_DIR, "gtdbtk.yaml")
-    params:
-        config["gtdbtk"]["path"]
-    threads:
-        config["gtdbtk"]["threads"]
-    message:
-        "Running GTDB toolkit on MAGs"
-    shell:
-        "(date && export GTDBTK_DATA_PATH={params} && gtdbtk classify_wf --cpus {threads} -x fa --genome_dir $(dirname {input}) --out_dir {output} && date) &> >(tee {log})"
-
-rule select_mags:
-        
-rule create_mags_dir:
-    output:
-        os.path.join(RESULTS_DIR, "mags_list.txt")
-    shell:
-        "ls mags/* > mags_list.txt"
-        
 rule drep_mags:
     input:
-        "status/dn_genomes.txt"
+        os.path.join(RESULTS_DIR, "MAGs")
     output:
-        os.path.join(RESULTS_DIR, "")
+        directory(os.path.join(RESULTS_DIR, "PanPolyGFS")),
+        os.path.join(DATA_DIR, "status/drep_mags.done")
+    conda:
+        os.path.join(ENV_DIR, "drep.yaml")
+    threads:
+        config["drep"]["threads"]
     shell:
-        "cat genomes_list.txt mags_list.txt > merged_genomes_mags_list.txt"
-        "dRep dereplicate PanPolyGFS -p CORES -g merged_genomes_mags_list.txt -sa 0.99 -comp 90 -con 5"
+        "checkm data setRoot /mnt/esb-storage-01/NOMIS/databases &&"
+        "dRep dereplicate {RESULTS_DIR}/drep_mags -p {threads} -g {input}/*.fasta -sa 0.99 -comp 90 -con 5 &&"
+        "touch status/drep_mags.done"
 
 
