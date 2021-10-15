@@ -7,3 +7,6 @@ slurm-*.out
 *.installed
 **/backup
 data_*
+results*
+results/*
+*results
