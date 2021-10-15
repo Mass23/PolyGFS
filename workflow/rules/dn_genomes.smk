@@ -42,5 +42,5 @@ rule create_mags_dir_file:
     output:
         os.path.join(DATA_DIR, "genomes_list.txt")
     shell:
-        "basename -s '.fna.gz' $(ls $(dirname {input[1]})/*.fna.gz) > genomes_list.txt"
+        "basename -s '.fna.gz' $(ls {RESULTS_DIR}/Genomes/*.fna.gz) > genomes_list.txt"
 

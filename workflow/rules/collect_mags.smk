@@ -9,7 +9,9 @@ localrules:
 rule collect_mags:
     input:
         os.path.join(RESULTS_DIR, "status/download_genomes.done"),
-        os.path.join(RESULTS_DIR, "gtdbtk_output")
+        os.path.join(RESULTS_DIR, "gtdbtk_output"),
+        os.path.join(DATA_DIR, "mags_list.txt"),
+        os.path.join(RESULTS_DIR, "MAGs")
     output:
         touch("status/collect_mags.done")
 
@@ -36,4 +38,27 @@ rule gtdbtk:
         "Running GTDB toolkit on MAGs"
     shell:
         "(date && export GTDBTK_DATA_PATH={params} && gtdbtk classify_wf --cpus {threads} -x fasta --genome_dir {input[1]} --out_dir {output} && date) &> >(tee {log})"
+
+rule list_target_mags:
+    input:
+        os.path.join(RESULTS_DIR, "gtdbtk_output/gtdbtk.bac120.summary.tsv")
+    output:
+        os.path.join(DATA_DIR, "mags_list.txt")
+    run:
+        tax_string = 'g__Polaromonas'
+        gtdbtk_file = pd.read_csv(input[0], sep='\t')
+        gtdbtk_sub = gtdbtk_file[gtdbtk_file['classification'].str.contains(tax_string)].user_genome
+        gtdbtk_sub.to_csv(output[0], sep='\t', index=False)
+
+rule copy_target_mags:
+    input:
+        os.path.join(DATA_DIR, "mags_list.txt")
+    output:
+        directory(os.path.join(RESULTS_DIR, "MAGs"))
+    shell:
+        "mkdir {output} &&"
+        "for line in $(cat {input});"
+        "    do"
+        "    cp {MAGS_DIR}$line.fasta {output}/. ;"
+        "    done"
 
