@@ -15,4 +15,5 @@ mags_list.txt
 samples_list.txt
 data_*
 results*
+*results
 ../results/*
