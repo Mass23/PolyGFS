@@ -14,4 +14,5 @@ genomes_list.txt
 mags_list.txt
 samples_list.txt
 data_*
+results*
 ../results/*
