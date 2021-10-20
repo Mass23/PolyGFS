@@ -16,7 +16,7 @@ rule phylo_analysis:
 
 rule run_gtotree:
     input:
-        os.path.join(DATA_DIR, "status/drep_mags.done")
+        #os.path.join(DATA_DIR, "status/drep_mags.done")
     output:
         directory(os.path.join(RESULTS_DIR, "gtotree_output"))
     conda:

@@ -8,7 +8,7 @@ localrules:
 
 rule collect_mags:
     input:
-        os.path.join(RESULTS_DIR, "status/download_genomes.done"),
+        #os.path.join(DATA_DIR, "status/dn_genomes.done"),
         os.path.join(RESULTS_DIR, "gtdbtk_output"),
         os.path.join(DATA_DIR, "mags_list.txt"),
         os.path.join(RESULTS_DIR, "MAGs")
@@ -22,6 +22,7 @@ rule collect_mags:
 
 rule gtdbtk:
     input:
+        #os.path.join(DATA_DIR, "status/dn_genomes.done"),
         os.path.join(DATA_DIR, "genomes_list.txt"),
         os.path.join(MAGS_DIR)
     output:
@@ -57,8 +58,5 @@ rule copy_target_mags:
         directory(os.path.join(RESULTS_DIR, "MAGs"))
     shell:
         "mkdir {output} &&"
-        "for line in $(cat {input});"
-        "    do"
-        "    cp {MAGS_DIR}$line.fasta {output}/. ;"
-        "    done"
+        "for line in $(cat {input}); do cp -v {MAGS_DIR}/$line.fasta {output} ;done"
 

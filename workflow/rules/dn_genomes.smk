@@ -26,8 +26,8 @@ rule download_genomes:
     input:
         GENOMES
     output:
-        directory(os.path.join(RESULTS_DIR,"Genomes")),
-        os.path.join(RESULTS_DIR,"status/download_genomes.done")
+        directory(os.path.join(RESULTS_DIR,"Genomes"))#,
+        #os.path.join(RESULTS_DIR,"status/download_genomes.done")
     threads:
         config["dn_genomes"]["thread"]
     conda:
@@ -37,10 +37,10 @@ rule download_genomes:
 
 rule create_mags_dir_file:
     input:
-        os.path.join(RESULTS_DIR,"status/download_genomes.done"),
+        #os.path.join(RESULTS_DIR,"status/download_genomes.done"),
         os.path.join(RESULTS_DIR,"Genomes/")
     output:
         os.path.join(DATA_DIR, "genomes_list.txt")
     shell:
-        "basename -s '.fna.gz' $(ls {RESULTS_DIR}/Genomes/*.fna.gz) > genomes_list.txt"
+        "basename -s '.fna.gz' $(ls {input}/*.fna.gz) > {output}"
 
