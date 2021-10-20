@@ -27,8 +27,11 @@ FASTQ_DIR = config["fastq_dir"]
 ##############################
 # Input
 MAG = [line.strip() for line in open("polaromonas_mag_list").readlines()]
-SAMPLES = [line.strip() for line in open("sample_list").readlines()]
+# SAMPLES = [line.strip() for line in open("sample_list").readlines()]
 SED_GI = [line.strip() for line in open("sed_gi_list").readlines()]
+SAMPLES = [line.strip() for line in open("sample_list").readlines()]
+MICRO_FQ = [line.strip() for line in open("microthrix_fastq_list").readlines()]
+ISOLATES = [line.strip() for line in open("microthrix_isolates_list").readlines()]
 
 ##############################
 # Params
@@ -38,13 +41,14 @@ BWA_IDX_EXT = ["amb", "ann", "bwt", "pac", "sa"]
 ##############################
 rule all:
     input:
-        expand(os.path.join(RESULTS_DIR, "mapped_reads/{mag}_{sample}.bam"), mag=SED_GI, sample=SAMPLES),
+#        expand(os.path.join(BIN_DIR, "{mag}.bwt"), mag=ISOLATES),
+        expand(os.path.join(RESULTS_DIR, "mapped_reads/{mag}_{sample}.bam"), mag=ISOLATES, sample=MICRO_FQ),
 #        expand(os.path.join(RESULTS_DIR, "merged_bam/{mag}_merged.bam"), mag=MAG),
 #        expand(os.path.join(RESULTS_DIR, "vcf/{mag}_filtered.bcf.gz"), mag=MAG),
 #        expand(os.path.join(RESULTS_DIR, "coverage/{mag}_depth.cov"), mag=SED_GI),
-        expand(os.path.join(RESULTS_DIR, "mapped_reads/{sed_gi}_{sample}.genome.txt"), sed_gi=SED_GI, sample=SAMPLES),
-        expand(os.path.join(RESULTS_DIR, "sed_gi_coverage/{sed_gi}_{sample}_depth.cov"), sed_gi=SED_GI, sample=SAMPLES),
-        expand(os.path.join(RESULTS_DIR, "sed_gi_vcf/{sed_gi}_{sample}_filtered.bcf.gz"), sed_gi=SED_GI, sample=SAMPLES)
+        expand(os.path.join(RESULTS_DIR, "mapped_reads/{mag}_{sample}.genome.txt"), mag=ISOLATES, sample=MICRO_FQ),
+        expand(os.path.join(RESULTS_DIR, "microthrix_coverage/{mag}_{sample}_depth.cov"), mag=ISOLATES, sample=MICRO_FQ),
+        expand(os.path.join(RESULTS_DIR, "microthrix_vcf/{mag}_{sample}_filtered.bcf.gz"), mag=ISOLATES, sample=MICRO_FQ)
 
 
 ###########
@@ -53,7 +57,7 @@ rule fa_index:
     input:
         ref_genome=os.path.join(BIN_DIR, "{mag}.fa"),
     output:
-        expand(os.path.join(BIN_DIR, "{{mag}}.{ext}"), mag=MAG, ext=BWA_IDX_EXT)
+        expand(os.path.join(BIN_DIR, "{{mag}}.{ext}"), ext=BWA_IDX_EXT)
     log:
         os.path.join(RESULTS_DIR, "logs/{mag}_index.log")
     threads:
@@ -70,9 +74,9 @@ rule fa_index:
 rule bwa_map:
     input:
         ref_genome=os.path.join(BIN_DIR, "{mag}.fa"),
-        r1=os.path.join(FASTQ_DIR, "{sample}_R1.fastp.fastq.gz"),
-        r2=os.path.join(FASTQ_DIR, "{sample}_R2.fastp.fastq.gz"),
-        idx=expand(os.path.join(BIN_DIR, "{mag}.{ext}"), mag=MAG, ext=BWA_IDX_EXT)
+        r1=os.path.join(FASTQ_DIR, "{sample}/mg.r1.preprocessed.fq"),
+        r2=os.path.join(FASTQ_DIR, "{sample}/mg.r2.preprocessed.fq"),
+        idx=expand(os.path.join(BIN_DIR, "{mag}.{ext}"), mag=ISOLATES, ext=BWA_IDX_EXT)
     output:
         os.path.join(RESULTS_DIR, "mapped_reads/{mag}_{sample}.bam")
     log:
@@ -84,7 +88,8 @@ rule bwa_map:
     conda:
         os.path.join(ENV_DIR, "bwa.yaml")
     wildcard_constraints:
-        mag="|".join(MAG)
+        mag="|".join(ISOLATES),
+        sample="|".join(MICRO_FQ)
     message:
         "Mapping {wildcards.sample} onto {wildcards.mag}"
     shell:
@@ -112,7 +117,7 @@ rule sort_index_bam:
 
 rule merge_bam:
     input:
-        expand(os.path.join(RESULTS_DIR, "mapped_reads/{{mag}}_{sample}.sorted.bam"), sample=SAMPLES)
+        expand(os.path.join(RESULTS_DIR, "mapped_reads/{{mag}}_{sample}.sorted.bam"), sample=MICRO_FQ)
     output:
         os.path.join(RESULTS_DIR, "merged_bam/{mag}_merged.bam")
     log:
@@ -136,37 +141,39 @@ rule bam2vcf:
         os.path.join(RESULTS_DIR, "logs/{mag}_bam2vcf.log")
     conda:
         os.path.join(ENV_DIR, "bcftools.yaml")
+    threads:
+        config["bwa"]["vcf"]["threads"]
     params:
         calls=temp(os.path.join(RESULTS_DIR, "vcf/{mag}_calls.bcf")),
         filtered=temp(os.path.join(RESULTS_DIR, "vcf/{mag}_filtered.bcf"))
     message:
         "Calling SNPs on {wildcards.mag}"
     shell:
-        "(date && mkdir -p $(dirname {output.gz}) && bcftools mpileup --max-depth 10000 -f {input.ref} {input.bam} | bcftools call -mv -Ob -o {params.calls} && "
+        "(date && mkdir -p $(dirname {output.gz}) && bcftools mpileup -a FORMAT/AD,FORMAT/DP --threads {threads} --max-depth 10000 -f {input.ref} {input.bam} | bcftools call -mv -Ob -o {params.calls} && "
         "bcftools view -i '%QUAL>=20' {params.calls} > {params.filtered} && "
         "bgzip {params.filtered} > {output.gz} && date) &> {log}"
 
 rule sed_GI_bam2vcf:
     input:
-        ref=os.path.join(BIN_DIR, "{sed_gi}.fa"),
-        bam=os.path.join(RESULTS_DIR, "mapped_reads/{sed_gi}_{sample}.sorted.bam")
+        ref=os.path.join(BIN_DIR, "{mag}.fa"),
+        bam=os.path.join(RESULTS_DIR, "mapped_reads/{mag}_{sample}.sorted.bam")
     output:
-        gz=os.path.join(RESULTS_DIR, "sed_gi_vcf/{sed_gi}_{sample}_filtered.bcf.gz")
+        gz=os.path.join(RESULTS_DIR, "microthrix_vcf/{mag}_{sample}_filtered.bcf.gz")
     log:
-        os.path.join(RESULTS_DIR, "logs/{sed_gi}_{sample}_sed_GI_vcf.log")
+        os.path.join(RESULTS_DIR, "logs/{mag}_{sample}_sed_GI_vcf.log")
     conda:
         os.path.join(ENV_DIR, "bcftools.yaml")
     threads:
         config["bwa"]["vcf"]["threads"]
     wildcard_constraints:
-        sed_gi="|".join(SED_GI)
+        mag="|".join(ISOLATES)
     params:
-        calls=temp(os.path.join(RESULTS_DIR, "sed_gi_vcf/{sed_gi}_{sample}_calls.bcf")),
-        filtered=temp(os.path.join(RESULTS_DIR, "sed_gi_vcf/{sed_gi}_{sample}_filtered.bcf"))
+        calls=temp(os.path.join(RESULTS_DIR, "microthrix_vcf/{mag}_{sample}_calls.bcf")),
+        filtered=temp(os.path.join(RESULTS_DIR, "microthrix_vcf/{mag}_{sample}_filtered.bcf"))
     message:
-        "Calling SNPs on {wildcards.sed_gi} and {wildcards.sample}"
+        "Calling SNPs on {wildcards.mag} and {wildcards.sample}"
     shell:
-        "(date && mkdir -p $(dirname {output.gz}) && bcftools mpileup --threads {threads} --max-depth 10000 -f {input.ref} {input.bam} | bcftools call -mv -Ob -o {params.calls} && "
+        "(date && mkdir -p $(dirname {output.gz}) && bcftools mpileup -a FORMAT/AD,FORMAT/DP --threads {threads} --max-depth 10000 -f {input.ref} {input.bam} | bcftools call -mv -Ob -o {params.calls} && "
         "bcftools view -i '%QUAL>=20' {params.calls} > {params.filtered} && "
         "bgzip -f {params.filtered} > {output.gz} && date) &> {log}"
 
@@ -175,43 +182,114 @@ rule sed_GI_bam2vcf:
 # Depth
 rule genome_file:
     input:
-        os.path.join(RESULTS_DIR, "mapped_reads/{sed_gi}_{sample}.sorted.bam")
+        os.path.join(RESULTS_DIR, "mapped_reads/{mag}_{sample}.sorted.bam")
     output:
-        os.path.join(RESULTS_DIR, "mapped_reads/{sed_gi}_{sample}.genome.txt")
+        os.path.join(RESULTS_DIR, "mapped_reads/{mag}_{sample}.genome.txt")
     log:
-        os.path.join(RESULTS_DIR, "logs/{sed_gi}_{sample}_genome.log")
+        os.path.join(RESULTS_DIR, "logs/{mag}_{sample}_genome.log")
     threads:
         config["bwa"]["sort"]["threads"]
     conda:
         os.path.join(ENV_DIR, "bwa.yaml")
     message:
-        "Creating GENOME file for bedtools for {wildcards.sed_gi} and {wildcards.sample}"
+        "Creating GENOME file for bedtools for {wildcards.mag} and {wildcards.sample}"
     shell:
         "(date && samtools view -H {input} | grep @SQ | sed 's/@SQ\\tSN:\\|LN://g' > {output} && date) &> {log}"
 
 rule depth:
     input:
-#        ref=os.path.join(BIN_DIR, "{mag}.fa"),
-#        bam=expand(os.path.join(RESULTS_DIR, "mapped_reads/{{mag}}_{sample}.bam"), sample=SAMPLES)
-        gen_file=os.path.join(RESULTS_DIR, "mapped_reads/{sed_gi}_{sample}.genome.txt"),
-        bam=os.path.join(RESULTS_DIR, "mapped_reads/{sed_gi}_{sample}.sorted.bam")
+        gen_file=os.path.join(RESULTS_DIR, "mapped_reads/{mag}_{sample}.genome.txt"),
+        bam=os.path.join(RESULTS_DIR, "mapped_reads/{mag}_{sample}.sorted.bam")
     output:
-#        wind=temp(os.path.join(RESULTS_DIR, "coverage/{mag}_SlidingWindows1kb.bed")),
-#        depth=os.path.join(RESULTS_DIR, "coverage/{mag}_depth.cov")
-        wind=temp(os.path.join(RESULTS_DIR, "sed_gi_coverage/{sed_gi}_{sample}_SlidingWindows1kb.bed")),
-        depth=os.path.join(RESULTS_DIR, "sed_gi_coverage/{sed_gi}_{sample}_depth.cov")
+        wind=temp(os.path.join(RESULTS_DIR, "microthrix_coverage/{mag}_{sample}_SlidingWindows1kb.bed")),
+        depth=os.path.join(RESULTS_DIR, "microthrix_coverage/{mag}_{sample}_depth.cov")
     log:
-#        os.path.join(RESULTS_DIR, "logs/{mag}_coverage.log")
-        os.path.join(RESULTS_DIR, "logs/{sed_gi}_{sample}_coverage.log")
+        os.path.join(RESULTS_DIR, "logs/{mag}_{sample}_coverage.log")
     threads:
         config["bwa"]["vcf"]["threads"]
     conda:
         os.path.join(ENV_DIR, "bedtools.yaml")
     wildcard_constraints:
-        sed_gi="|".join(SED_GI)
+        mag="|".join(ISOLATES)
     message:
-#        "Estimating the coverage for all samples on {wildcards.mag}"
-        "Estimating the coverage for {wildcards.sed_gi} and {wildcards.sample}"
+        "Estimating the coverage for {wildcards.mag} and {wildcards.sample}"
     shell:
         "(date && mkdir -p $(dirname {output.depth}) && bedtools makewindows -g {input.gen_file} -w 1000 > {output.wind} && "
         "bedtools multicov -bams {input.bam} -bed {output.wind} > {output.depth} && date) &> {log}"
+
+
+
+############ updated rules ##########
+# rule picard_mark_dup:
+#     input:
+#         os.path.join(RESULTS_DIR, "mapped_reads/{mag}_{sample}.sorted.bam")
+#     output:
+#         BAM=os.path.join(RESULTS_DIR, "mapped_reads/{mag}_{sample}.marked_dup.bam"),
+#         METRICS=os.path.join(RESULTS_DIR, "mapped_reads/{mag}_{sample}.marked_dupMetrics.txt")
+#     log:
+#         os.path.join(RESULTS_DIR, "logs/{mag}_{sample}_picard.log"
+#     conda:
+#         os.path.join(ENV_DIR, "gatk.yaml")
+#     message:
+#         "Marking duplicate reads in the BAM files for {wildcards.mag} with {wildcards.sample}"
+#     shell:
+#         "(date && java -jar picard.jar MarkDuplicates I={input} O={output.BAM} M={output.METRICS} && date) &> {log}"
+
+# rule gatk_realign_indels:
+#     input:
+#         ref=os.path.join(BIN_DIR, "{mag}.fa"),
+#         BAM=rules.picard_mark_dup.output.BAM, 
+#     output:
+#         intervals=os.path.join(RESULTS_DIR, "mapped_reads/{mag}_{sample}_realigner.intervals")
+#         gatkBAM=os.path.join(RESULTS_DIR, "mapped_reads/{mag}_{sample}.marked_realigned.bam")
+#     log:
+#         os.path.join(RESULTS_DIR, "logs/{mag}_{sample}_GATK.log"
+#     conda:
+#         os.path.join(ENV_DIR, "gatk.yaml")
+#     message:
+#         "Realigning indels based on GATK for {wildcards.mag} with {wildcards.sample}"
+#     shell:
+#         "(date && "
+#         "java –jar GenomeAnalysisTK.jar –T RealignerTargetCreator –R {input.ref} –I {input.BAM} –o {output.intervals} && "
+#         "java –jar GenomeAnalysisTK.jar –T IndelRealigner –R {input.ref} –I {input.BAM} –targetIntervals {output.intervals} –o {output.gatkBAM} && "
+#         "&& date) &> {log}"
+
+
+# ###########
+# # Depth
+# rule genome_file:
+#     input:
+#         rules.gatk_realign_indels.output.gatkBAM
+#     output:
+#         os.path.join(RESULTS_DIR, "mapped_reads/{mag}_{sample}.genome.txt")
+#     log:
+#         os.path.join(RESULTS_DIR, "logs/{mag}_{sample}_genome.log")
+#     threads:
+#         config["bwa"]["sort"]["threads"]
+#     conda:
+#         os.path.join(ENV_DIR, "bwa.yaml")
+#     message:
+#         "Creating GENOME file for bedtools for {wildcards.mag} and {wildcards.sample}"
+#     shell:
+#         "(date && samtools view -H {input} | grep @SQ | sed 's/@SQ\\tSN:\\|LN://g' > {output} && date) &> {log}"
+
+# rule depth:
+#     input:
+#         gen_file=os.path.join(RESULTS_DIR, "mapped_reads/{mag}_{sample}.genome.txt"),
+#         bam=rules.gatk_realign_indels.output.gatkBAM
+#     output:
+#         wind=temp(os.path.join(RESULTS_DIR, "microthrix_coverage/{mag}_{sample}_SlidingWindows1kb.bed")),
+#         depth=os.path.join(RESULTS_DIR, "microthrix_coverage/{mag}_{sample}_depth.cov")
+#     log:
+#         os.path.join(RESULTS_DIR, "logs/{mag}_{sample}_coverage.log")
+#     threads:
+#         config["bwa"]["vcf"]["threads"]
+#     conda:
+#         os.path.join(ENV_DIR, "bedtools.yaml")
+#     wildcard_constraints:
+#         mag="|".join(ISOLATES)
+#     message:
+#         "Estimating the coverage for {wildcards.mag} and {wildcards.sample}"
+#     shell:
+#         "(date && mkdir -p $(dirname {output.depth}) && bedtools makewindows -g {input.gen_file} -w 1000 > {output.wind} && "
+#         "bedtools multicov -bams {input.bam} -bed {output.wind} > {output.depth} && date) &> {log}"
