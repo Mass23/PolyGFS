@@ -25,7 +25,7 @@ rule run_gtotree:
         hmm_gtotree=config['gtotree']['hmm'],
         threads_gtotree=config['gtotree']['threads']
     shell:
-        "gunzip {RESULTS_DIR}/Genomes/*.fna.gz &&"
+        #"gunzip {RESULTS_DIR}/Genomes/*.fna.gz &&"
         "ls {RESULTS_DIR}/drep_mags/dereplicated_genomes/*.fasta > drep_mags_paths.txt &&"
         "ls {RESULTS_DIR}/Genomes/*.fna > genomes_paths.txt &&"
         "cat drep_mags_paths.txt genomes_paths.txt > genomes_drep_mags_paths.txt &&"

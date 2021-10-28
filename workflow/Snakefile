@@ -24,7 +24,7 @@ include:
 
 # List of (main) targets to be created
 TARGETS = []
-STEPS = ['dn_genomes', 'collect_mags', 'drep_mags', 'phylo_analysis']
+STEPS = ['dn_genomes', 'collect_mags', 'drep_mags', 'phylo_analysis', 'annotate_genomes']
 
 # Download genomes
 if "dn_genomes" in STEPS:
@@ -64,7 +64,7 @@ if "comp_matrix" in STEPS:
         "rules/comp_matrix.smk"
     TARGETS += [
         "status/comp_matrix.done"
-    ]
+        ]
 
 # Annotate genomes
 if "annotate_genomes" in STEPS:

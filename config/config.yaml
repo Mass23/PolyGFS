@@ -59,3 +59,41 @@ bwa:
 gtotree:
   hmm: 'Gammaproteobacteria'
   threads: 32
+
+# Prokka
+prokka:
+  threads: 12
+
+# MANTIS
+mantis:
+  cores: 4
+  hmmer_threads: 1
+  single_mem: 200
+  multi_mem: 500
+  path: "/mnt/esb-storage-01/NOMIS/databases/mantis"
+  # default HMMs
+  default:
+    kofam_hmm_folder: "/mnt/esb-storage-01/NOMIS/databases/mantis/hmm/kofam_mantis"
+    ncbi_hmm_folder: "/mnt/esb-storage-01/NOMIS/databases/mantis/hmm/NCBI"
+    nog_hmm_folder: "/mnt/esb-storage-01/NOMIS/databases/mantis/hmm/eggnog_mantis/NOGT"
+    pfam_hmm_folder: "/mnt/esb-storage-01/NOMIS/databases/mantis/hmm/pfam"
+    tigrfam_hmm_folder: "/mnt/esb-storage-01/NOMIS/databases/mantis/hmm/tigrfam"
+  # custom HMMs
+#  custom: [
+#    "/mnt/isilon/projects/ecosystem_biology/data/hmm/Cas/Burstein2016.Nature.Cas_db.hmm",
+#    "/mnt/isilon/projects/ecosystem_biology/data/hmm/HMM2015/BRENDA/brenda.hmm",
+#    "/mnt/isilon/projects/ecosystem_biology/data/hmm/HMM2015/metacyc/metacyc.hmm",
+#    "/mnt/isilon/projects/ecosystem_biology/data/hmm/HMM2015/SwissProt/swissprot.hmm",
+#    "/mnt/isilon/projects/ecosystem_biology/data/hmm/transportdb/transportdb_merged.hmm",
+#    "/mnt/isilon/projects/ecosystem_biology/data/hmm/resfams/Resfams-full.hmm"
+#  ]
+  # weights: <name>_hmm_folder --> <name>_weight
+  weights:
+    ncbi_weight: 0.9
+    nog_weight: 0.8
+    pfam_weight: 0.9
+    tigrfam_weight: 0.5
+
+
+
+
