@@ -11,7 +11,7 @@ localrules: bin_collect_mantis, bin_link_mantis, mantis_config, mantis_reformat_
 # default
 rule annotate_genomes:
     input:
-        os.path.join(RESULTS_DIR, "logs/mantis.done")#,
+        os.path.join(RESULTS_DIR, "logs/mantis.done")
         #os.path.join(RESULTS_DIR, "logs/mantis_move.done"),
         #os.path.join(RESULTS_DIR, "mantis_bins")
     output:
@@ -21,7 +21,7 @@ rule annotate_genomes:
 ########################################
 # checkpoint rules for collecting bins #
 ########################################
-checkpoint bin_collect_mantis:
+rule bin_collect_mantis:
     input:
         os.path.join(RESULTS_DIR, "MAGs"),
         os.path.join(RESULTS_DIR, "Genomes")
@@ -32,7 +32,7 @@ checkpoint bin_collect_mantis:
         "cp -v {input[0]}/*.fasta {output} && "
         "cp -v {input[1]}/*.fna {output}"
 
-rule move_bins:
+checkpoint move_bins:
     input:
         os.path.join(RESULTS_DIR, "mantis_bins")
     output:
@@ -77,7 +77,7 @@ rule prokka:
     message:
         "Running Prokka on mags"
     shell:
-        "(date && prokka --outdir $(dirname {output.FAA}) {input[1]} --cpus {threads} --force && date) &> >(tee {log})"
+        "(date && prokka --outdir $(dirname {output.FAA}) --prefix $(echo ${basename {input[1]}} | cut -d. -f1) {input[1]} --cpus {threads} --force && date) &> >(tee {log})"
 
 ##########
 # MANTIS #
@@ -153,7 +153,7 @@ rule mantis_reformat_consensus:
         "(date && paste <(cut -d '|' -f1 {input} | sed 's/\\t$//') <(cut -d '|' -f2 {input} | sed 's/^\\t//;s/\\t/;/g') > {output} && date) &> >(tee {log})"
 
 def bins_mantis(wildcards):
-    checkpoint_output = checkpoints.bin_collect_mantis.get(**wildcards).output[0]
+    checkpoint_output = checkpoints.move_bins.get(**wildcards).output[0]
     return expand(os.path.join(RESULTS_DIR, "mantis/{i}/consensus_annotation.reformatted.tsv"),i=glob_wildcards(os.path.join(checkpoint_output, "{i}.fa")).i)
 
 rule bin_folder_sample_mantis:
