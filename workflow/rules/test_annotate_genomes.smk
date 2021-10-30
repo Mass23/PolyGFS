@@ -93,8 +93,9 @@ rule prokka:
     message:
         "Running Prokka on mags"
     shell:
-        "(date && prokka --outdir $(dirname {output.FAA}) --prefix $(echo $(basename {input}) | cut -d. -f1) {input} --cpus {threads} --force && "
-        "date) &> >(tee {log})"
+#        "(date && prokka --outdir $(dirname {output.FAA}) --prefix $(echo $(basename {input}) | cut -d'.' -f1) {input} --cpus {threads} --force && "
+        "(date && prokka --outdir $(dirname {output.FAA}) --prefix $(echo $(basename -s '.fa' {input})) {input} --cpus {threads} --force && "
+        "date) &> {log}"
 
 rule mantis_metadata:
     input:
@@ -144,7 +145,7 @@ rule mantis_run:
     message:
         "Annotation with MANTIS for mags"
     shell:
-        "(date && python {config[mantis][path]}/ run_mantis -t {input.FAA} --output_folder $(dirname {output}) --mantis_config {input.config} --hmmer_threads {params.cores} --cores {threads} --memory {config[mantis][single_mem]} --kegg_matrix && date) &> >(tee {log})"
+        "(date && python {config[mantis][path]}/ run_mantis -t {input.FAA} --output_folder $(dirname {output}) --mantis_config {input.config} --hmmer_threads {params.cores} --cores {threads} --memory {config[mantis][single_mem]} --kegg_matrix && date) &> {log}"
 
 # Mantis: reformat consensus output (to be imported in Python/R)
 rule mantis_reformat_consensus:
@@ -158,7 +159,7 @@ rule mantis_reformat_consensus:
         "Reformatting MANTIS output for {wildcards.mag}"
     shell:
         # merge annotations after "|", remove "|" separator
-        "(date && paste <(cut -d '|' -f1 {input} | sed 's/\\t$//') <(cut -d '|' -f2 {input} | sed 's/^\\t//;s/\\t/;/g') > {output} && date) &> >(tee {log})"
+        "(date && paste <(cut -d '|' -f1 {input} | sed 's/\\t$//') <(cut -d '|' -f2 {input} | sed 's/^\\t//;s/\\t/;/g') > {output} && date) &> {log}"
 
 def bins_mantis(wildcards):
     checkpoint_output = checkpoints.bin_collect_mantis.get(**wildcards).output[0]
