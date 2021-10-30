@@ -25,22 +25,27 @@ rule bins_collect:
         os.path.join(RESULTS_DIR, "MAGs"),
         os.path.join(RESULTS_DIR, "Genomes")
     output:
-        directory(os.path.join(RESULTS_DIR, "all_bins"))
-    shell:
-        "mkdir {output} &&"
-        "cp -v {input[0]}/*.fasta {output} && "
-        "cp -v {input[1]}/*.fna {output}"
-
-rule move_bins:
-    input:
-        os.path.join(RESULTS_DIR, "all_bins")
-    output:
+        directory(os.path.join(RESULTS_DIR, "all_bins")),
         os.path.join(RESULTS_DIR, "logs/mantis_move.done")
     shell:
-        "cd {input} && "
+        "mkdir {output[0]} &&"
+        "cp -v {input[0]}/*.fasta {output[0]} && "
+        "cp -v {input[1]}/*.fna {output[0]} &&"
+        "cd {output[0]} && "
         "for f in *.fna; do mv \"$f\" \"${{f%.fna}}.fa\" ;done && "
         "for f in *.fasta; do mv \"$f\" \"${{f%.contigs.fasta}}.fa\" ; done && "
-        "touch {output}"
+        "touch {output[1]}"        
+
+# rule move_bins:
+#     input:
+#         os.path.join(RESULTS_DIR, "all_bins")
+#     output:
+#         os.path.join(RESULTS_DIR, "logs/mantis_move.done")
+#     shell:
+#         "cd {input} && "
+#         "for f in *.fna; do mv \"$f\" \"${{f%.fna}}.fa\" ;done && "
+#         "for f in *.fasta; do mv \"$f\" \"${{f%.contigs.fasta}}.fa\" ; done && "
+#         "touch {output}"
 
 rule list_mantis_bins:
     input:
@@ -88,7 +93,7 @@ rule prokka:
     message:
         "Running Prokka on mags"
     shell:
-        "(date && prokka --outdir $(dirname {output.FAA}) --prefix $(echo ${basename {input[1]}} | cut -d. -f1) {input[1]} --cpus {threads} --force && "
+        "(date && prokka --outdir $(dirname {output.FAA}) --prefix $(echo $(basename {input}) | cut -d. -f1) {input} --cpus {threads} --force && "
         "date) &> >(tee {log})"
 
 rule mantis_metadata:
@@ -154,17 +159,6 @@ rule mantis_reformat_consensus:
     shell:
         # merge annotations after "|", remove "|" separator
         "(date && paste <(cut -d '|' -f1 {input} | sed 's/\\t$//') <(cut -d '|' -f2 {input} | sed 's/^\\t//;s/\\t/;/g') > {output} && date) &> >(tee {log})"
-
-# def bins_mantis(wildcards):
-#     checkpoint_output = checkpoints.bin_collect_mantis.get(**wildcards).output[0]
-#     return expand(os.path.join(RESULTS_DIR, "mantis/{i}/consensus_annotation.reformatted.tsv"),
-#         i=glob_wildcards(os.path.join(checkpoint_output, "{i}.fa")).i
-#         )
-
-# def bins_mantis(wildcards):
-#     checkpoint_output = checkpoints.move_bins.get(**wildcards).output[0]
-#     return expand(os.path.join(RESULTS_DIR, "mantis/{i}/consensus_annotation.reformatted.tsv"),
-#     i=glob_wildcards(os.path.join(checkpoint_output, "{i}.fa")).i)
 
 def bins_mantis(wildcards):
     checkpoint_output = checkpoints.bin_collect_mantis.get(**wildcards).output[0]
