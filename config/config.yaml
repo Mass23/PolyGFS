@@ -74,9 +74,9 @@ mantis:
   path: "/mnt/esb-storage-01/NOMIS/databases/mantis"
   # default HMMs
   default:
-    kofam_hmm_folder: "/mnt/esb-storage-01/NOMIS/databases/mantis/hmm/kofam_mantis"
+    kofam_hmm_folder: "/mnt/esb-storage-01/NOMIS/databases/mantis/hmm/kofam"
     ncbi_hmm_folder: "/mnt/esb-storage-01/NOMIS/databases/mantis/hmm/NCBI"
-    nog_hmm_folder: "/mnt/esb-storage-01/NOMIS/databases/mantis/hmm/eggnog_mantis/NOGT"
+    nog_hmm_folder: "/mnt/esb-storage-01/NOMIS/databases/mantis/hmm/eggnog_mantis/NOG"
     pfam_hmm_folder: "/mnt/esb-storage-01/NOMIS/databases/mantis/hmm/pfam"
     tigrfam_hmm_folder: "/mnt/esb-storage-01/NOMIS/databases/mantis/hmm/tigrfam"
   # custom HMMs

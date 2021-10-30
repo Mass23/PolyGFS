@@ -128,7 +128,7 @@ rule mantis_config:
 # NOTE: check installation before use: python submodules/mantis/ check_installation
 rule mantis_run:
     input:
-        FAA=rules.prokka.output,
+        FAA=rules.prokka.output.FAA,
         config="mantis.config"
     output:
         os.path.join(RESULTS_DIR, "mantis/{i}/consensus_annotation.tsv")
