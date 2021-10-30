@@ -34,18 +34,7 @@ rule bins_collect:
         "cd {output[0]} && "
         "for f in *.fna; do mv \"$f\" \"${{f%.fna}}.fa\" ;done && "
         "for f in *.fasta; do mv \"$f\" \"${{f%.contigs.fasta}}.fa\" ; done && "
-        "touch {output[1]}"        
-
-# rule move_bins:
-#     input:
-#         os.path.join(RESULTS_DIR, "all_bins")
-#     output:
-#         os.path.join(RESULTS_DIR, "logs/mantis_move.done")
-#     shell:
-#         "cd {input} && "
-#         "for f in *.fna; do mv \"$f\" \"${{f%.fna}}.fa\" ;done && "
-#         "for f in *.fasta; do mv \"$f\" \"${{f%.contigs.fasta}}.fa\" ; done && "
-#         "touch {output}"
+        "touch {output[1]}"
 
 rule list_mantis_bins:
     input:
