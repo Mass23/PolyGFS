@@ -69,7 +69,7 @@ if "comp_matrix" in STEPS:
 # Annotate genomes
 if "annotate_genomes" in STEPS:
     include:
-        "rules/annotate_genomes.smk"
+        "rules/test_annotate_genomes.smk"
     TARGETS += [
         "status/annotate_genomes.done"
     ]

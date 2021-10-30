@@ -17,43 +17,56 @@ rule annotate_genomes:
     output:
         touch("status/annotate_genomes.done")
 
-
 ########################################
 # checkpoint rules for collecting bins #
 ########################################
-rule bin_collect_mantis:
+rule bins_collect:
     input:
         os.path.join(RESULTS_DIR, "MAGs"),
         os.path.join(RESULTS_DIR, "Genomes")
     output:
-        directory(os.path.join(RESULTS_DIR, "mantis_bins"))
+        directory(os.path.join(RESULTS_DIR, "all_bins"))
     shell:
         "mkdir {output} &&"
         "cp -v {input[0]}/*.fasta {output} && "
         "cp -v {input[1]}/*.fna {output}"
 
-checkpoint move_bins:
+rule move_bins:
     input:
-        os.path.join(RESULTS_DIR, "mantis_bins")
+        os.path.join(RESULTS_DIR, "all_bins")
     output:
         os.path.join(RESULTS_DIR, "logs/mantis_move.done")
     shell:
         "cd {input} && "
         "for f in *.fna; do mv \"$f\" \"${{f%.fna}}.fa\" ;done && "
-        "for f in *.fasta; do mv \"$f\" \"${{f%.fasta}}.fa\" ; done && "
+        "for f in *.fasta; do mv \"$f\" \"${{f%.contigs.fasta}}.fa\" ; done && "
         "touch {output}"
 
-#rule bin_link_mantis:
-#    input:
-#        os.path.join(RESULTS_DIR, "mantis_links/{i}.fa"),
-#    output:
-#        os.path.join(RESULTS_DIR, "mantis_bins/{i}.fa")
-#    wildcard_constraints:
-#        #sample="|".join(SAMPLES)
-#        i="(\w\.)+"
-#    shell:
-#        "ln -vs {input} {output}"
+rule list_mantis_bins:
+    input:
+        os.path.join(RESULTS_DIR, "all_bins"),
+        os.path.join(RESULTS_DIR, "logs/mantis_move.done")
+    output:
+        os.path.join(DATA_DIR, "mantis_bins.txt")
+    shell:
+        "ls {input[0]}/*.fa > {output}"
 
+checkpoint bin_collect_mantis:
+    input:
+        os.path.join(RESULTS_DIR, "all_bins"),
+        os.path.join(RESULTS_DIR, "logs/mantis_move.done")
+    output:
+        directory(os.path.join(RESULTS_DIR, "mantis_links"))
+    shell:
+        "ln -vs {input[0]} {output}"
+
+rule bin_link_mantis:
+    input:
+        os.path.join(RESULTS_DIR, "all_bins/{i}.fa"),
+    output:
+        os.path.join(RESULTS_DIR, "mantis_bins/{i}.fa")
+    shell:
+        "ln -vs {input[0]} {output}"
 
 ####################
 # rules for MANTIS #
@@ -61,8 +74,6 @@ checkpoint move_bins:
 # Prokka 
 rule prokka:
     input:
-        rules.checkpoint move_bins.output,
-#        os.path.join(RESULTS_DIR, "logs/mantis_move.done"),
         os.path.join(RESULTS_DIR, "mantis_bins/{i}.fa")
     output:
         FAA=os.path.join(RESULTS_DIR, "prokka/{i}.faa"),
@@ -77,17 +88,8 @@ rule prokka:
     message:
         "Running Prokka on mags"
     shell:
-        "(date && prokka --outdir $(dirname {output.FAA}) --prefix $(echo ${basename {input[1]}} | cut -d. -f1) {input[1]} --cpus {threads} --force && date) &> >(tee {log})"
-
-##########
-# MANTIS #
-rule list_mantis_bins:
-    input:
-        os.path.join(RESULTS_DIR, "mantis_bins/")
-    output:
-        os.path.join(DATA_DIR, "mantis_bins.txt")
-    shell:
-        "ls {input}/*.fa > {output}"
+        "(date && prokka --outdir $(dirname {output.FAA}) --prefix $(echo ${basename {input[1]}} | cut -d. -f1) {input[1]} --cpus {threads} --force && "
+        "date) &> >(tee {log})"
 
 rule mantis_metadata:
     input:
@@ -113,10 +115,9 @@ rule mantis_config:
             for weights_name, weights_value in config["mantis"]["weights"].items():
                 ofile.write("%s=%f\n" % (weights_name, weights_value))
 
-                
- # for hmm_path in config["mantis"]["custom"]:
- #     ofile.write("custom_hmm=%s\n" % hmm_path)
- 
+# for hmm_path in config["mantis"]["custom"]:
+#     ofile.write("custom_hmm=%s\n" % hmm_path)
+
 # Mantis: protein annotation
 # NOTE: check installation before use: python submodules/mantis/ check_installation
 rule mantis_run:
@@ -149,18 +150,25 @@ rule mantis_reformat_consensus:
     log:
         os.path.join(RESULTS_DIR, "logs/{i}.reformat.log")
     message:
-        "Reformatting MANTIS output for mags"
+        "Reformatting MANTIS output for {wildcards.mag}"
     shell:
         # merge annotations after "|", remove "|" separator
         "(date && paste <(cut -d '|' -f1 {input} | sed 's/\\t$//') <(cut -d '|' -f2 {input} | sed 's/^\\t//;s/\\t/;/g') > {output} && date) &> >(tee {log})"
 
 # def bins_mantis(wildcards):
-#    checkpoint_output = checkpoints.move_bins.get(**wildcards).output[0]
-#    return expand(os.path.join(RESULTS_DIR, "mantis/{i}/consensus_annotation.reformatted.tsv"),i=glob_wildcards(os.path.join(checkpoint_output, "{i}.fa")).i)
+#     checkpoint_output = checkpoints.bin_collect_mantis.get(**wildcards).output[0]
+#     return expand(os.path.join(RESULTS_DIR, "mantis/{i}/consensus_annotation.reformatted.tsv"),
+#         i=glob_wildcards(os.path.join(checkpoint_output, "{i}.fa")).i
+#         )
+
+# def bins_mantis(wildcards):
+#     checkpoint_output = checkpoints.move_bins.get(**wildcards).output[0]
+#     return expand(os.path.join(RESULTS_DIR, "mantis/{i}/consensus_annotation.reformatted.tsv"),
+#     i=glob_wildcards(os.path.join(checkpoint_output, "{i}.fa")).i)
 
 def bins_mantis(wildcards):
-    checkpoint_output = checkpoints.move_bins.get(**wildcards).output[0]
-    return expand(os.path.join(RESULTS_DIR, "prokka/{i}.faa"),
+    checkpoint_output = checkpoints.bin_collect_mantis.get(**wildcards).output[0]
+    return expand(os.path.join(RESULTS_DIR, "mantis/{i}/consensus_annotation.reformatted.tsv"),
     i=glob_wildcards(os.path.join(checkpoint_output, "{i}.fa")).i
     )
 
@@ -169,4 +177,3 @@ rule bin_folder_sample_mantis:
         bins_mantis
     output:
         touch(os.path.join(RESULTS_DIR, "logs/mantis.done"))
-

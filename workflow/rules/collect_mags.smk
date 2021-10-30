@@ -58,5 +58,6 @@ rule copy_target_mags:
         directory(os.path.join(RESULTS_DIR, "MAGs"))
     shell:
         "mkdir {output} &&"
-        "for line in $(cat {input}); do cp -v {MAGS_DIR}/$line.fasta {output} ;done"
+#        "for line in $(cat {input}); do cp -v {MAGS_DIR}/$line.fasta {output} ;done"
+        "for line in $(tail -n+2 {input}); do cp -v {MAGS_DIR}/$line.fasta {output} ;done"
 

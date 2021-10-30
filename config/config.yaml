@@ -5,23 +5,24 @@
 # steps: ["imp"]  # RUN THIS FIRST and launch IMP3 outside of the workflow
 
 # Next the following steps should be run
-steps: ["dn_genomes", "drep_mags", "collect_mags", "phylo_analysis"]#, "comp_matrix", "annotate_genomes", "pan_genome", "map_reads", "var_calling"]
-
+# steps: ["dn_genomes", "drep_mags", "collect_mags", "phylo_analysis"]#, "comp_matrix", "annotate_genomes", "pan_genome", "map_reads", "var_calling"]
+steps: ["annotate_genomes"]
 
 ############################################################
 # INPUT
 
 # Directory where the files are located
-work_dir: "/mnt/md1200/epfl_sber/massimo/ChapterII/PolyGFS"
+work_dir: "/mnt/md1200/sbusi/PolyGFS"
 
 # Directory where the results are to be stored
-results_dir: "/mnt/md1200/epfl_sber/massimo/ChapterII/results"
+#results_dir: "/mnt/md1200/epfl_sber/massimo/ChapterII/results"
+results_dir: "/mnt/md1200/sbusi/PolyGFS/results"
 
 # Directory where conda environments are located
-env_dir: "/mnt/md1200/epfl_sber/massimo/ChapterII/PolyGFS/envs"
+env_dir: "/mnt/md1200/sbusi/PolyGFS/envs"
 
 # Directory with scripts for analyses
-scripts_dir: "/mnt/md1200/epfl_sber/massimo/ChapterII/PolyGFS/workflow/scripts"
+scripts_dir: "/mnt/md1200/sbusi/PolyGFS/workflow/scripts"
 
 # Directory with the bins of interest
 mags_dir: "/mnt/esb-storage-01/NOMIS/ROCKS/rock_bins"
@@ -93,7 +94,4 @@ mantis:
     nog_weight: 0.8
     pfam_weight: 0.9
     tigrfam_weight: 0.5
-
-
-
 
