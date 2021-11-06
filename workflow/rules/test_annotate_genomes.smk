@@ -145,7 +145,7 @@ rule mantis_reformat_consensus:
     log:
         os.path.join(RESULTS_DIR, "logs/{i}.reformat.log")
     message:
-        "Reformatting MANTIS output for {wildcards.mag}"
+        "Reformatting MANTIS output for MAG output"
     shell:
         # merge annotations after "|", remove "|" separator
         "(date && paste <(cut -d '|' -f1 {input} | sed 's/\\t$//') <(cut -d '|' -f2 {input} | sed 's/^\\t//;s/\\t/;/g') > {output} && date) &> {log}"
