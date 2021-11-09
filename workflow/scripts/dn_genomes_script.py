@@ -13,4 +13,3 @@ for line in open(snakemake.input[0], 'r').readlines():
         subprocess.call(' '.join(args), shell = True)
     else:
         print(str(line) + ' is not a refseq or genbank accession!')
-#os.system('touch ' + str(snakemake.output[1]))
